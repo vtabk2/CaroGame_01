@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">Caro Bluetooth</string>
+    <string name="single_player">single player</string>
+    <string name="multiplayer">multiplayer via Bluetooth</string>
+    <string name="about">About</string>
+    <string name="exit">exit</string>
+    <string name="close">close</string>
+    <string name="about_game">Caro Bluetooth version 1.0</string>
+    <string name="message_exit_game">Are you sure you want to exit?</string>
 </resources>

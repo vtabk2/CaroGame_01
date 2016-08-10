@@ -27,4 +27,7 @@
         bluetooth to scan available devices</string>
     <string name="scanning">Scanning, please wait</string>
     <string name="show_visibility">show visibility</string>
+    <string name="text_player">Player: </string>
+    <string name="win_lose">Win/Lose: </string>
+    <string name="btn_play">PLAY</string>
 </resources>

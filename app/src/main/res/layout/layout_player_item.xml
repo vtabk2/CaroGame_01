@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:layout_width="@dimen/layout_player_item_width"
               android:layout_height="wrap_content"
-              android:background="@android:color/darker_gray"
+              android:background="@drawable/surround_item_player"
               android:orientation="vertical">
 
     <ImageView

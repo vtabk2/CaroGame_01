@@ -7,4 +7,24 @@
     <string name="close">close</string>
     <string name="about_game">Caro Bluetooth version 1.0</string>
     <string name="message_exit_game">Are you sure you want to exit?</string>
+    <string name="sample_device_name">Sony Xperia X Performance</string>
+    <string name="sample_device_address">A1:B2:C3:D4:E5:F6</string>
+    <string name="select_device_to_connect">Select a device to connect</string>
+    <string name="paired_devices">Paired Devices:</string>
+    <string name="no_paired_devices">There is no paired devices</string>
+    <string name="scan_available_devices">Scan devices</string>
+    <string name="no_available_devices">There is no available devices</string>
+    <string name="available_device">Available Devices:</string>
+    <string name="your_device_name">Your Device Name:</string>
+    <string name="your_device_address">Your Device Address:</string>
+    <string name="bluetooth_not_supported">Device does not supports bluetooth</string>
+    <string name="request_turn_on_bluetooth_to_play">Bluetooth has been turned off, turn on bluetooth to
+    play game</string>
+    <string name="turn_on_bluetooth_to_play">"You need to turn on bluetooth to play game</string>
+    <string name="bluetooth_turned_on">Bluetooth turned on</string>
+    <string name="request_permission_to_scan">You need to grant location permisson to scan available devices</string>
+    <string name="request_turn_on_bluettoth_to_scan">Bluetooth has been turned off, turn on
+        bluetooth to scan available devices</string>
+    <string name="scanning">Scanning, please wait</string>
+    <string name="show_visibility">show visibility</string>
 </resources>

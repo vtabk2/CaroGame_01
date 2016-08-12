@@ -22,12 +22,18 @@
     play game</string>
     <string name="turn_on_bluetooth_to_play">"You need to turn on bluetooth to play game</string>
     <string name="bluetooth_turned_on">Bluetooth turned on</string>
-    <string name="request_permission_to_scan">You need to grant location permisson to scan available devices</string>
-    <string name="request_turn_on_bluettoth_to_scan">Bluetooth has been turned off, turn on
+    <string name="request_permission_to_scan">You need to grant location permission to scan
+        available devices</string>
+    <string name="request_turn_on_bluetooth_to_scan">Bluetooth has been turned off, turn on
         bluetooth to scan available devices</string>
     <string name="scanning">Scanning, please wait</string>
     <string name="show_visibility">show visibility</string>
     <string name="text_player">Player: </string>
     <string name="win_lose">Win/Lose: </string>
     <string name="btn_play">PLAY</string>
+    <string name="unable_to_connect_device">Unable to connect device</string>
+    <string name="device_connection_was_lost">Device connection was lost</string>
+    <string name="something_error">Something error</string>
+    <string name="not_connected">Not connected</string>
+    <string name="connect_to_device">Connect to %s</string>
 </resources>

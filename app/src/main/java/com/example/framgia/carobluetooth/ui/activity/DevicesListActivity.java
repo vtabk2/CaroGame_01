@@ -23,8 +23,10 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.example.framgia.carobluetooth.R;
+import com.example.framgia.carobluetooth.data.Constants;
 import com.example.framgia.carobluetooth.ui.adapter.BluetoothDeviceRecyclerViewAdapter;
-import com.example.framgia.carobluetooth.ui.utility.ToastUtils;
+import com.example.framgia.carobluetooth.ui.listener.OnClickItemListener;
+import com.example.framgia.carobluetooth.utility.ToastUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,9 +35,9 @@ import java.util.Set;
 /**
  * Created by framgia on 11/08/2016.
  */
-public class DevicesListActivity extends AppCompatActivity implements View.OnClickListener {
+public class DevicesListActivity extends AppCompatActivity implements View.OnClickListener,
+    OnClickItemListener {
     private static final int REQUEST_ENABLE_BLUETOOTH = 1;
-    private static final int TIME_SHOW_VISIBILITY = 300;
     private static final int PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION = 0;
     private static final String IS_SCANNING_CODE = "scanning";
     private static final String IS_SCANNED_CODE = "scanned";
@@ -58,6 +60,7 @@ public class DevicesListActivity extends AppCompatActivity implements View.OnCli
                     break;
                 case BluetoothAdapter.ACTION_DISCOVERY_STARTED:
                     mTextViewNoAvailableDevices.setVisibility(View.GONE);
+                    mRecyclerViewAvailableDevices.setVisibility(View.GONE);
                     mProgressBar.setVisibility(View.VISIBLE);
                     mIsScanning = true;
                     break;
@@ -67,8 +70,12 @@ public class DevicesListActivity extends AppCompatActivity implements View.OnCli
                     mIsScanned = true;
                     if (mAvailableDevicesList.size() != 0) {
                         mTextViewNoAvailableDevices.setVisibility(View.GONE);
+                        mRecyclerViewAvailableDevices.setVisibility(View.VISIBLE);
                         mAvailableDevicesAdapter.notifyDataSetChanged();
-                    } else mTextViewNoAvailableDevices.setVisibility(View.VISIBLE);
+                    } else {
+                        mTextViewNoAvailableDevices.setVisibility(View.VISIBLE);
+                        mRecyclerViewAvailableDevices.setVisibility(View.GONE);
+                    }
                     break;
             }
         }
@@ -84,6 +91,7 @@ public class DevicesListActivity extends AppCompatActivity implements View.OnCli
 
     private void initBluetooth() {
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        setResult(RESULT_CANCELED);
         if (mBluetoothAdapter == null) {
             new AlertDialog.Builder(this)
                 .setMessage(R.string.bluetooth_not_supported)
@@ -97,11 +105,12 @@ public class DevicesListActivity extends AppCompatActivity implements View.OnCli
             mAvailableDevicesList = new ArrayList<>();
             initViews();
             mPairedDevicesAdapter =
-                new BluetoothDeviceRecyclerViewAdapter(getApplicationContext(), mPairedDevicesList);
+                new BluetoothDeviceRecyclerViewAdapter(getApplicationContext(),
+                    mPairedDevicesList, true, this);
             mRecyclerViewPairedDevices.setLayoutManager(new LinearLayoutManager(this));
             mRecyclerViewPairedDevices.setAdapter(mPairedDevicesAdapter);
             mAvailableDevicesAdapter = new BluetoothDeviceRecyclerViewAdapter
-                (getApplicationContext(), mAvailableDevicesList);
+                (getApplicationContext(), mAvailableDevicesList, false, this);
             mRecyclerViewAvailableDevices.setLayoutManager(new LinearLayoutManager(this));
             mRecyclerViewAvailableDevices.setAdapter(mAvailableDevicesAdapter);
         }
@@ -117,8 +126,10 @@ public class DevicesListActivity extends AppCompatActivity implements View.OnCli
             (R.id.recycler_view_available_devices);
         mTextViewNoPairedDevices = (TextView) findViewById(R.id.text_view_no_paired_devices);
         mTextViewNoAvailableDevices = (TextView) findViewById(R.id.text_view_no_available_devices);
-        if (mAvailableDevicesList.size() == 0)
+        if (mAvailableDevicesList.size() == 0) {
             mTextViewNoAvailableDevices.setVisibility(View.VISIBLE);
+            mRecyclerViewAvailableDevices.setVisibility(View.GONE);
+        }
         findViewById(R.id.button_scan_available_devices).setOnClickListener(this);
         findViewById(R.id.button_show_visibility).setOnClickListener(this);
         mProgressBar = (ProgressBar) findViewById(R.id.progress_bar_loading);
@@ -131,10 +142,9 @@ public class DevicesListActivity extends AppCompatActivity implements View.OnCli
     }
 
     private void showVisibility() {
-        Intent discoverableIntent = new
-            Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
+        Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
         discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION,
-            TIME_SHOW_VISIBILITY);
+            Constants.TIME_SHOW_VISIBILITY);
         startActivity(discoverableIntent);
     }
 
@@ -146,12 +156,13 @@ public class DevicesListActivity extends AppCompatActivity implements View.OnCli
         }
         mPairedDevicesList.clear();
         Set<BluetoothDevice> bluetoothDevicesSet = mBluetoothAdapter.getBondedDevices();
-        if (bluetoothDevicesSet.size() == 0)
+        if (bluetoothDevicesSet.size() == 0) {
             mTextViewNoPairedDevices.setVisibility(View.VISIBLE);
-        else {
+            mRecyclerViewPairedDevices.setVisibility(View.GONE);
+        } else {
             mTextViewNoPairedDevices.setVisibility(View.GONE);
-            for (BluetoothDevice bluetoothDevice : bluetoothDevicesSet)
-                mPairedDevicesList.add(bluetoothDevice);
+            mRecyclerViewPairedDevices.setVisibility(View.VISIBLE);
+            mPairedDevicesList.addAll(bluetoothDevicesSet);
             mPairedDevicesAdapter.notifyDataSetChanged();
         }
     }
@@ -184,12 +195,10 @@ public class DevicesListActivity extends AppCompatActivity implements View.OnCli
         if (!mBluetoothAdapter.isEnabled()) {
             ToastUtils.showToast(this, R.string.request_permission_to_scan);
             turnBluetoothOn();
-            return;
-        }
-        if (mBluetoothAdapter.isDiscovering()) mBluetoothAdapter.cancelDiscovery();
-        else {
+        } else {
             mAvailableDevicesList.clear();
             mAvailableDevicesAdapter.notifyDataSetChanged();
+            cancelDiscovery();
             mBluetoothAdapter.startDiscovery();
             IntentFilter intentFilter = new IntentFilter();
             intentFilter.addAction(BluetoothDevice.ACTION_FOUND);
@@ -197,6 +206,10 @@ public class DevicesListActivity extends AppCompatActivity implements View.OnCli
             intentFilter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
             registerReceiver(mBroadcastReceiver, intentFilter);
         }
+    }
+
+    private void cancelDiscovery() {
+        if (mBluetoothAdapter.isDiscovering()) mBluetoothAdapter.cancelDiscovery();
     }
 
     @Override
@@ -255,6 +268,7 @@ public class DevicesListActivity extends AppCompatActivity implements View.OnCli
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        cancelDiscovery();
         if (mBroadcastReceiver.isOrderedBroadcast()) unregisterReceiver(mBroadcastReceiver);
     }
 
@@ -263,6 +277,19 @@ public class DevicesListActivity extends AppCompatActivity implements View.OnCli
         super.onSaveInstanceState(outState);
         outState.putBoolean(IS_SCANNING_CODE, mIsScanning);
         outState.putBoolean(IS_SCANNED_CODE, mIsScanned);
-        if (mBluetoothAdapter != null) mBluetoothAdapter.cancelDiscovery();
+        cancelDiscovery();
+    }
+
+    @Override
+    public void onClickItem(View view, int position, boolean isPairedDevice) {
+        switch (view.getId()) {
+            case R.id.linear_layout_item_bluetooth_device:
+                cancelDiscovery();
+                setResult(RESULT_OK, new Intent().putExtra(Constants.INTENT_DEVICE_ADDRESS,
+                    (isPairedDevice ? mPairedDevicesList.get(position) :
+                        mAvailableDevicesList.get(position)).getAddress()));
+                finish();
+                break;
+        }
     }
 }

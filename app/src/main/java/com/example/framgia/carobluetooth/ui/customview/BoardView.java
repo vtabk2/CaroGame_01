@@ -15,7 +15,7 @@ import android.view.View;
 
 import com.example.framgia.carobluetooth.R;
 import com.example.framgia.carobluetooth.data.Constants;
-import com.example.framgia.carobluetooth.ui.utility.ToastUtils;
+import com.example.framgia.carobluetooth.utility.ToastUtils;
 
 public class BoardView extends View {
     private Paint mLinePaint, mBmpPaint;

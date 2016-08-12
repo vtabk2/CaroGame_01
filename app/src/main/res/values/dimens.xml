@@ -8,4 +8,10 @@
     <dimen name="line_break_height">1dp</dimen>
     <dimen name="device_list_title">22sp</dimen>
     <dimen name="text_size_medium">18sp</dimen>
+    <dimen name="padding_high">20dp</dimen>
+    <dimen name="margin_high">20dp</dimen>
+    <dimen name="avatar_size">60dp</dimen>
+    <dimen name="image_player_size">35dp</dimen>
+    <dimen name="layout_player_item_width">120dp</dimen>
+    <dimen name="button_board_height">48dp</dimen>
 </resources>

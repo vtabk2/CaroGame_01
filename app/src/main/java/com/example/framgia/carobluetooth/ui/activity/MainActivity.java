@@ -1,6 +1,7 @@
 package com.example.framgia.carobluetooth.ui.activity;
 
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -55,7 +56,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.button_multiplayer:
-                // TODO: 09/08/2016
+                startActivity(new Intent(this, BoardActivity.class));
                 break;
             case R.id.button_about:
                 showAbout();

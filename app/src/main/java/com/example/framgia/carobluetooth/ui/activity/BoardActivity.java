@@ -4,23 +4,27 @@ import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.widget.HorizontalScrollView;
 
 import com.example.framgia.carobluetooth.R;
 import com.example.framgia.carobluetooth.data.Constants;
 import com.example.framgia.carobluetooth.service.BluetoothConnectionService;
+import com.example.framgia.carobluetooth.ui.customview.BoardView;
 import com.example.framgia.carobluetooth.utility.ToastUtils;
 
-public class BoardActivity extends AppCompatActivity implements View.OnClickListener {
+public class BoardActivity extends AppCompatActivity implements View.OnClickListener, Constants {
     private static final int REQUEST_CONNECT_DEVICE = 1;
     private static final int REQUEST_ENABLE_BLUETOOTH = 2;
     private BluetoothAdapter mBluetoothAdapter;
     private BluetoothConnectionService mBluetoothConnectionService;
+    private SharedPreferences mSharedPreferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,17 +33,23 @@ public class BoardActivity extends AppCompatActivity implements View.OnClickList
         initBluetooth();
     }
 
+    private void initViews() {
+        BoardView boardView = new BoardView(this);
+        HorizontalScrollView horizontalScrollView =
+            (HorizontalScrollView) findViewById(R.id.horizontal_scroll_board);
+        horizontalScrollView.addView(boardView);
+    }
+
     private void initBluetooth() {
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        if (mBluetoothAdapter == null)
-            new AlertDialog.Builder(this)
-                .setMessage(R.string.bluetooth_not_supported)
-                .setPositiveButton(R.string.close, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        finish();
-                    }
-                }).show().setCanceledOnTouchOutside(false);
-        else initOnListener();
+        if (mBluetoothAdapter == null) {
+            ToastUtils.showToast(this, R.string.bluetooth_not_supported);
+            finish();
+        } else {
+            initViews();
+            loadSharedPreferences();
+            initOnListener();
+        }
     }
 
     private void initOnListener() {
@@ -54,7 +64,7 @@ public class BoardActivity extends AppCompatActivity implements View.OnClickList
     private void showVisibility() {
         Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
         discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION,
-            Constants.TIME_SHOW_VISIBILITY);
+            TIME_SHOW_VISIBILITY);
         startActivity(discoverableIntent);
     }
 
@@ -62,13 +72,13 @@ public class BoardActivity extends AppCompatActivity implements View.OnClickList
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.image_button_back:
-                onBackPressed();
+                showBackGame();
                 break;
             case R.id.image_button_undo:
-                // TODO: 11/08/2016
+                showUndoGame();
                 break;
             case R.id.image_button_exit:
-                // TODO: 11/08/2016
+                showExitGame();
                 break;
             case R.id.image_button_search:
                 startActivityForResult(new Intent(this, DevicesListActivity.class),
@@ -94,7 +104,7 @@ public class BoardActivity extends AppCompatActivity implements View.OnClickList
     public synchronized void onResume() {
         super.onResume();
         if (mBluetoothConnectionService != null &&
-            mBluetoothConnectionService.getState() == Constants.STATE_NONE)
+            mBluetoothConnectionService.getState() == STATE_NONE)
             mBluetoothConnectionService.start();
     }
 
@@ -109,7 +119,7 @@ public class BoardActivity extends AppCompatActivity implements View.OnClickList
     }
 
     private void sendMessage(String message) {
-        if (mBluetoothConnectionService.getState() != Constants.STATE_CONNECTED) {
+        if (mBluetoothConnectionService.getState() != STATE_CONNECTED) {
             ToastUtils.showToast(this, R.string.not_connected);
             return;
         }
@@ -121,35 +131,35 @@ public class BoardActivity extends AppCompatActivity implements View.OnClickList
         @Override
         public void handleMessage(Message message) {
             switch (message.what) {
-                case Constants.MESSAGE_STATE_CHANGE:
+                case MESSAGE_STATE_CHANGE:
                     switch (message.arg1) {
-                        case Constants.STATE_CONNECTED:
-                            // TODO: 15/08/2016  
+                        case STATE_CONNECTED:
+                            // TODO: 15/08/2016
                             break;
-                        case Constants.STATE_CONNECTING:
-                            // TODO: 15/08/2016  
+                        case STATE_CONNECTING:
+                            // TODO: 15/08/2016
                             break;
-                        case Constants.STATE_LISTEN:
-                        case Constants.STATE_NONE:
-                            // TODO: 15/08/2016  
+                        case STATE_LISTEN:
+                        case STATE_NONE:
+                            // TODO: 15/08/2016
                             break;
                     }
                     break;
-                case Constants.MESSAGE_WRITE:
-                    // TODO: 15/08/2016  
+                case MESSAGE_WRITE:
+                    // TODO: 15/08/2016
                     break;
-                case Constants.MESSAGE_READ:
+                case MESSAGE_READ:
                     ToastUtils.showToast(getApplicationContext(),
                         new String((byte[]) message.obj, 0, message.arg1));
                     break;
-                case Constants.MESSAGE_DEVICE_NAME:
+                case MESSAGE_DEVICE_NAME:
                     ToastUtils.showToast(getApplicationContext(),
                         String.format(getString(R.string.connect_to_device),
-                            message.getData().getString(Constants.DEVICE_NAME)));
+                            message.getData().getString(DEVICE_NAME)));
                     break;
-                case Constants.MESSAGE_TOAST:
-                    ToastUtils.showToast(getApplicationContext(), message.getData().getString
-                        (Constants.TOAST));
+                case MESSAGE_TOAST:
+                    ToastUtils
+                        .showToast(getApplicationContext(), message.getData().getString(TOAST));
                     break;
             }
         }
@@ -161,7 +171,7 @@ public class BoardActivity extends AppCompatActivity implements View.OnClickList
             case REQUEST_CONNECT_DEVICE:
                 if (resultCode == Activity.RESULT_OK)
                     mBluetoothConnectionService.connect(mBluetoothAdapter.getRemoteDevice
-                        (data.getExtras().getString(Constants.INTENT_DEVICE_ADDRESS)));
+                        (data.getExtras().getString(INTENT_DEVICE_ADDRESS)));
                 break;
             case REQUEST_ENABLE_BLUETOOTH:
                 if (resultCode == Activity.RESULT_OK) {
@@ -172,6 +182,76 @@ public class BoardActivity extends AppCompatActivity implements View.OnClickList
                     finish();
                 }
                 break;
+            case R.id.button_play:
+                // TODO: 17/08/2016 start game
+                break;
         }
+    }
+
+    private void showBackGame() {
+        new AlertDialog.Builder(this)
+            .setMessage(R.string.message_back_game_play)
+            .setPositiveButton(android.R.string.yes,
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        surrender();
+                        finish();
+                    }
+                })
+            .setNegativeButton(android.R.string.no,
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                    }
+                })
+            .show().setCanceledOnTouchOutside(false);
+    }
+
+    private void surrender() {
+        SharedPreferences.Editor editor = mSharedPreferences.edit();
+        editor.putInt(LOSE, mSharedPreferences.getInt(LOSE, WIN_LOSE_DEFAULT) + INCREASE_DEFAULT);
+        editor.apply();
+    }
+
+    private void loadSharedPreferences() {
+        mSharedPreferences = getSharedPreferences(SHARED_PREFERENCES, MODE_PRIVATE);
+    }
+
+    private void showExitGame() {
+        new AlertDialog.Builder(this)
+            .setMessage(R.string.message_exit_game_play)
+            .setPositiveButton(android.R.string.yes,
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        surrender();
+                    }
+                })
+            .setNegativeButton(android.R.string.no,
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                    }
+                })
+            .show().setCanceledOnTouchOutside(false);
+    }
+
+    private void showUndoGame() {
+        new AlertDialog.Builder(this)
+            .setMessage(R.string.message_undo_game_play)
+            .setPositiveButton(android.R.string.yes,
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        // TODO: 15/08/2016
+                    }
+                })
+            .setNegativeButton(android.R.string.no,
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                    }
+                })
+            .show().setCanceledOnTouchOutside(false);
+    }
+
+    @Override
+    public void onBackPressed() {
+        showBackGame();
     }
 }

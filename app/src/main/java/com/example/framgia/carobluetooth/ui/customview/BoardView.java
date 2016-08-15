@@ -8,73 +8,79 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Paint.Style;
 import android.graphics.Rect;
-import android.util.AttributeSet;
-import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 
 import com.example.framgia.carobluetooth.R;
 import com.example.framgia.carobluetooth.data.Constants;
-import com.example.framgia.carobluetooth.utility.ToastUtils;
+import com.example.framgia.carobluetooth.data.enums.BoardCellState;
+import com.example.framgia.carobluetooth.data.model.ItemCaro;
 
-public class BoardView extends View {
+public class BoardView extends View implements Constants {
     private Paint mLinePaint, mBmpPaint;
-    private Bitmap mBitmapBackground;
+    private Bitmap mBitmapBackground, mBitmapPlayerX, mBitmapPlayerO;
     private Rect mRectTable = new Rect();
-    private GestureDetector mGestureDetector;
+    private Rect mRectCell = new Rect();
+    private boolean isPlayerX = true;
+    private ItemCaro[][] mItemCaros;
 
-    public BoardView(Context context, AttributeSet attrs) {
-        super(context, attrs);
+    public BoardView(Context context) {
+        super(context);
         mBitmapBackground = getResBitmap(R.drawable.img_white);
+        mBitmapPlayerX = getResBitmap(R.drawable.img_x);
+        mBitmapPlayerO = getResBitmap(R.drawable.img_o);
         mBmpPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         mLinePaint = new Paint();
         mLinePaint.setColor(Color.BLACK);
-        mLinePaint.setStrokeWidth(Constants.STROKE_WIDTH);
+        mLinePaint.setStrokeWidth(STROKE_WIDTH);
         mLinePaint.setStyle(Style.STROKE);
-        initOnListener();
-    }
-
-    private void initOnListener() {
-        GestureDetector.OnGestureListener gestureListener =
-            new GestureDetector.SimpleOnGestureListener() {
-                @Override
-                public boolean onScroll(MotionEvent e1, MotionEvent e2,
-                                        float distanceX, float distanceY) {
-                    scrollBy((int) distanceX, (int) distanceY);
-                    return true;
-                }
-            };
-        mGestureDetector = new GestureDetector(getContext(), gestureListener);
+        mRectCell.set(MARGIN, MARGIN, CELL_SIZE, CELL_SIZE);
     }
 
     private void initBoard() {
-        mRectTable.set(Constants.MARGIN, Constants.MARGIN,
-            (Constants.BOARD_WIDTH) + Constants.MARGIN,
-            (Constants.BOARD_HEIGHT) + Constants.MARGIN);
+        mRectTable.set(MARGIN, MARGIN, (CELL_SIZE * COL) + MARGIN, (CELL_SIZE * ROW) + MARGIN);
+        mItemCaros = new ItemCaro[ROW][COL];
+        resetBoard();
+    }
+
+    private void resetBoard() {
+        for (int i = 0; i < ROW; i++)
+            for (int j = 0; j < COL; j++)
+                if (mItemCaros[i][j] != null)
+                    mItemCaros[i][j].setBoardCellState(BoardCellState.EMPTY);
+                else mItemCaros[i][j] = new ItemCaro(i, j, BoardCellState.EMPTY);
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        try {
-            int x = mRectTable.left;
-            int y = mRectTable.top;
-            int xr = mRectTable.right;
-            int yb = mRectTable.bottom;
-            canvas.drawBitmap(mBitmapBackground,
-                new Rect(Constants.MARGIN, Constants.MARGIN, mBitmapBackground.getWidth(),
-                    mBitmapBackground.getHeight()), mRectTable, mBmpPaint);
-            canvas.drawRect(mRectTable, mLinePaint);
-            for (int i = 1; i < Constants.ROW; i++) {
-                canvas.drawLine(x, y + i * Constants.CELL_SIZE,
-                    xr, x + i * Constants.CELL_SIZE, mLinePaint);
+        int x = mRectTable.left;
+        int y = mRectTable.top;
+        int xr = mRectTable.right;
+        int yb = mRectTable.bottom;
+        canvas.drawBitmap(mBitmapBackground,
+            new Rect(MARGIN, MARGIN, mBitmapBackground.getWidth(),
+                mBitmapBackground.getHeight()), mRectTable, mBmpPaint);
+        canvas.drawRect(mRectTable, mLinePaint);
+        for (int i = 1; i < ROW; i++)
+            canvas.drawLine(x, y + i * CELL_SIZE, xr, x + i * CELL_SIZE, mLinePaint);
+        for (int i = 1; i < COL; i++)
+            canvas.drawLine(x + i * CELL_SIZE, y, x + i * CELL_SIZE, yb, mLinePaint);
+        for (int row = 0; row < ROW; row++) {
+            for (int col = 0; col < COL; col++) {
+                switch (mItemCaros[row][col].getBoardCellState()) {
+                    case PLAYER_X:
+                        mRectCell
+                            .offsetTo(col * CELL_SIZE + PADDING, row * CELL_SIZE + PADDING);
+                        canvas.drawBitmap(mBitmapPlayerX, null, mRectCell, mBmpPaint);
+                        break;
+                    case PLAYER_O:
+                        mRectCell
+                            .offsetTo(col * CELL_SIZE + PADDING, row * CELL_SIZE + PADDING);
+                        canvas.drawBitmap(mBitmapPlayerO, null, mRectCell, mBmpPaint);
+                        break;
+                }
             }
-            for (int i = 1; i < Constants.COL; i++) {
-                canvas.drawLine(x + i * Constants.CELL_SIZE, y,
-                    x + i * Constants.CELL_SIZE, yb, mLinePaint);
-            }
-        } catch (Exception e) {
-            ToastUtils.showToast(getContext(), e.toString());
         }
     }
 
@@ -89,9 +95,36 @@ public class BoardView extends View {
     }
 
     @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        setMeasuredDimension(COL * CELL_SIZE, ROW * CELL_SIZE);
+    }
+
+    @Override
     public boolean onTouchEvent(MotionEvent event) {
-        mGestureDetector.onTouchEvent(event);
-        return true;
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_SCROLL:
+                return true;
+            case MotionEvent.ACTION_DOWN:
+                return true;
+            case MotionEvent.ACTION_UP:
+                int curX = (int) event.getX();
+                int curY = (int) event.getY();
+                if (curX <= mRectTable.right && curX >= mRectTable.left
+                    && curY <= mRectTable.bottom && curY >= mRectTable.top) {
+                    int colIndex = (curX - MARGIN) / CELL_SIZE;
+                    int rowIndex = (curY - MARGIN) / CELL_SIZE;
+                    if (mItemCaros[rowIndex][colIndex].getBoardCellState() != BoardCellState.EMPTY)
+                        return true;
+                    if (isPlayerX) {
+                        mItemCaros[rowIndex][colIndex].setBoardCellState(BoardCellState.PLAYER_X);
+                    } else {
+                        mItemCaros[rowIndex][colIndex].setBoardCellState(BoardCellState.PLAYER_O);
+                    }
+                    invalidate();
+                }
+                return true;
+        }
+        return false;
     }
 }
 

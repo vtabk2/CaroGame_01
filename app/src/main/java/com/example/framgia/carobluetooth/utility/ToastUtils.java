@@ -1,4 +1,4 @@
-package com.example.framgia.carobluetooth.ui.utility;
+package com.example.framgia.carobluetooth.utility;
 
 import android.content.Context;
 import android.support.annotation.StringRes;

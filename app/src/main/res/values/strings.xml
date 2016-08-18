@@ -6,7 +6,7 @@
     <string name="exit">exit</string>
     <string name="close">close</string>
     <string name="about_game">Caro Bluetooth version 1.0</string>
-    <string name="message_exit_game">Are you sure you want to exit?</string>
+    <string name="message_exit_game">Do you sure you want to exit?</string>
     <string name="sample_device_name">Sony Xperia X Performance</string>
     <string name="sample_device_address">A1:B2:C3:D4:E5:F6</string>
     <string name="select_device_to_connect">Select a device to connect</string>
@@ -29,11 +29,16 @@
     <string name="scanning">Scanning, please wait</string>
     <string name="show_visibility">show visibility</string>
     <string name="text_player">Player: </string>
-    <string name="win_lose">Win/Lose: </string>
+    <string name="win_lose">W/L: </string>
     <string name="btn_play">PLAY</string>
     <string name="unable_to_connect_device">Unable to connect device</string>
     <string name="device_connection_was_lost">Device connection was lost</string>
     <string name="something_error">Something error</string>
     <string name="not_connected">Not connected</string>
     <string name="connect_to_device">Connect to %s</string>
+    <string name="message_exit_game_play">You are now playing the game. If you exit you will lose
+        this game and start new game. Do you want to continue?</string>
+    <string name="message_undo_game_play">Do you want to undo game?</string>
+    <string name="message_back_game_play">You are now playing the game. If you exit you will lose
+        this game and back to home. Do you want to continue?</string>
 </resources>

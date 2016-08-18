@@ -22,10 +22,12 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.format.DateFormat;
 import android.view.View;
+import android.widget.Button;
 import android.widget.HorizontalScrollView;
 
 import com.example.framgia.carobluetooth.R;
 import com.example.framgia.carobluetooth.data.Constants;
+import com.example.framgia.carobluetooth.data.enums.GameState;
 import com.example.framgia.carobluetooth.data.model.GameData;
 import com.example.framgia.carobluetooth.service.BluetoothConnectionService;
 import com.example.framgia.carobluetooth.ui.customview.BoardView;
@@ -52,6 +54,8 @@ public class BoardActivity extends AppCompatActivity implements View.OnClickList
     private BluetoothAdapter mBluetoothAdapter;
     private BluetoothConnectionService mBluetoothConnectionService;
     private SharedPreferences mSharedPreferences;
+    private BoardView mBoardView;
+    private Button mButtonPlay;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,10 +65,11 @@ public class BoardActivity extends AppCompatActivity implements View.OnClickList
     }
 
     private void initViews() {
-        BoardView boardView = new BoardView(this);
+        mBoardView = new BoardView(this);
         HorizontalScrollView horizontalScrollView =
             (HorizontalScrollView) findViewById(R.id.horizontal_scroll_board);
-        horizontalScrollView.addView(boardView);
+        horizontalScrollView.addView(mBoardView);
+        mButtonPlay = (Button) findViewById(R.id.button_play);
     }
 
     private void initBluetooth() {
@@ -85,7 +90,7 @@ public class BoardActivity extends AppCompatActivity implements View.OnClickList
         findViewById(R.id.image_button_exit).setOnClickListener(this);
         findViewById(R.id.image_button_search).setOnClickListener(this);
         findViewById(R.id.image_button_visibility).setOnClickListener(this);
-        findViewById(R.id.button_play).setOnClickListener(this);
+        mButtonPlay.setOnClickListener(this);
     }
 
     private void showVisibility() {
@@ -99,13 +104,14 @@ public class BoardActivity extends AppCompatActivity implements View.OnClickList
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.image_button_back:
-                showBackGame();
+                if (mBoardView.getGameState() == GameState.PLAYING) showBackGame();
+                else finish();
                 break;
             case R.id.image_button_undo:
-                showUndoGame();
+                if (mBoardView.getGameState() == GameState.PLAYING) showUndoGame();
                 break;
             case R.id.image_button_exit:
-                showExitGame();
+                if (mBoardView.getGameState() == GameState.PLAYING) showExitGame();
                 break;
             case R.id.image_button_search:
                 startActivityForResult(new Intent(this, DevicesListActivity.class),
@@ -113,6 +119,11 @@ public class BoardActivity extends AppCompatActivity implements View.OnClickList
                 break;
             case R.id.image_button_visibility:
                 showVisibility();
+                break;
+            case R.id.button_play:
+                if (mBoardView == null) return;
+                mBoardView.setGameState(GameState.PLAYING);
+                mButtonPlay.setVisibility(View.INVISIBLE);
                 break;
         }
     }
@@ -219,9 +230,6 @@ public class BoardActivity extends AppCompatActivity implements View.OnClickList
                     ToastUtils.showToast(this, R.string.turn_on_bluetooth_to_play);
                     finish();
                 }
-                break;
-            case R.id.button_play:
-                // TODO: 17/08/2016 start game
                 break;
         }
     }

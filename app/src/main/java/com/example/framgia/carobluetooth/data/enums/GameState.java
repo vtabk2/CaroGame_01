@@ -8,7 +8,8 @@ import java.io.Serializable;
 public enum GameState implements Serializable{
     NONE(0),
     PLAYER_X_WIN(1),
-    PLAYER_X_LOSE(2);
+    PLAYER_X_LOSE(2),
+    PLAYING(3);
     private int mValues;
 
     GameState(int values) {

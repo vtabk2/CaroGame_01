@@ -1,6 +1,7 @@
 package com.example.framgia.carobluetooth.ui.customview;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -8,6 +9,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Paint.Style;
 import android.graphics.Rect;
+import android.support.v7.app.AlertDialog;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -31,6 +33,8 @@ public class BoardView extends View implements Constants {
     private TurnGame mTurnGame;
     private GameData mGameData;
     private OnSendGameData mOnSendGameData;
+    private int mMinCol, mMinRow, mMaxCol, mMaxRow;
+    private GameState mGameState;
 
     public BoardView(Context context) {
         super(context);
@@ -60,6 +64,13 @@ public class BoardView extends View implements Constants {
                 if (mItemCaros[i][j] != null)
                     mItemCaros[i][j].setBoardCellState(BoardCellState.EMPTY);
                 else mItemCaros[i][j] = new ItemCaro(i, j, BoardCellState.EMPTY);
+        mMinCol = mMinRow = DEFAULT_MIN_ROW_COL;
+        mMaxCol = mMaxRow = DEFAULT_MAX_ROW_COL;
+        mGameState = GameState.NONE;
+    }
+
+    public void setGameState(GameState gameState) {
+        mGameState = gameState;
     }
 
     @Override
@@ -125,25 +136,162 @@ public class BoardView extends View implements Constants {
                         && curY <= mRectTable.bottom && curY >= mRectTable.top) {
                         int colIndex = (curX - MARGIN) / CELL_SIZE;
                         int rowIndex = (curY - MARGIN) / CELL_SIZE;
+                        if (colIndex < mMinCol) mMinCol = colIndex;
+                        if (colIndex > mMaxCol) mMaxCol = colIndex;
+                        if (rowIndex < mMinRow) mMinRow = rowIndex;
+                        if (rowIndex > mMaxRow) mMaxRow = rowIndex;
                         if (mItemCaros[rowIndex][colIndex].getBoardCellState() !=
-                            BoardCellState.EMPTY)
-                            return true;
-                        if (mIsPlayerX) {
-                            mItemCaros[rowIndex][colIndex]
-                                .setBoardCellState(BoardCellState.PLAYER_X);
-                        } else {
-                            mItemCaros[rowIndex][colIndex]
-                                .setBoardCellState(BoardCellState.PLAYER_O);
-                        }
+                            BoardCellState.EMPTY) return true;
+                        if (mIsPlayerX) mItemCaros[rowIndex][colIndex]
+                            .setBoardCellState(BoardCellState.PLAYER_X);
+                        else mItemCaros[rowIndex][colIndex]
+                            .setBoardCellState(BoardCellState.PLAYER_O);
                         invalidate();
-                        mGameData.updateGameData(mItemCaros[rowIndex][colIndex], GameState
-                            .NONE, mTurnGame, Navigation.NONE);
-                        mOnSendGameData.sendGameData(mGameData);
+                        if (isEndGame(
+                            mIsPlayerX ? BoardCellState.PLAYER_X : BoardCellState.PLAYER_O))
+                            showEndGame();
+                        else {
+                            mGameData.updateGameData(mItemCaros[rowIndex][colIndex], GameState.NONE,
+                                mTurnGame, Navigation.NONE);
+                            mOnSendGameData.sendGameData(mGameData);
+                        }
                     }
                     return true;
                 }
         }
         return false;
+    }
+
+    private void showEndGame() {
+        mGameState = mIsPlayerX ? GameState.PLAYER_X_WIN : GameState.PLAYER_X_LOSE;
+        String message = mIsPlayerX ? getContext().getString(R.string.message_win_game_play) :
+            getContext().getString(R.string.message_lose_game_play);
+        new AlertDialog.Builder(getContext())
+            .setMessage(message)
+            .setPositiveButton(android.R.string.yes,
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        // TODO: 19/08/2016  
+                    }
+                })
+            .setNegativeButton(android.R.string.no,
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        // TODO: 19/08/2016
+                    }
+                })
+            .show().setCanceledOnTouchOutside(false);
+    }
+
+    private boolean isEndGame(BoardCellState boardCellState) {
+        return checkWinVertical(boardCellState) ||
+            checkWinHorizontal(boardCellState) ||
+            checkWinRightDiagonalUp(boardCellState) ||
+            checkWinRightDiagonalDown(boardCellState) ||
+            checkWinLeftDiagonalUp(boardCellState) ||
+            checkWinLeftDiagonalDown(boardCellState);
+    }
+
+    private boolean checkWinVertical(BoardCellState boardCellState) {
+        int count, row;
+        for (int col = mMinCol; col <= mMaxCol; col++) {
+            row = mMinRow;
+            count = DEFAULT_COUNT;
+            while (count < WIN_COUNT && row <= mMaxRow) {
+                if (mItemCaros[row][col].getBoardCellState() == boardCellState) count++;
+                else count = DEFAULT_COUNT;
+                row++;
+            }
+            if (count >= WIN_COUNT) return true;
+        }
+        return false;
+    }
+
+    private boolean checkWinHorizontal(BoardCellState boardCellState) {
+        int count, col;
+        for (int row = mMinRow; row <= mMaxRow; row++) {
+            col = mMinCol;
+            count = DEFAULT_COUNT;
+            while (count < WIN_COUNT && col <= mMaxCol) {
+                if (mItemCaros[row][col].getBoardCellState() == boardCellState) count++;
+                else count = DEFAULT_COUNT;
+                col++;
+            }
+            if (count >= WIN_COUNT) return true;
+        }
+        return false;
+    }
+
+    private boolean checkWinRightDiagonalUp(BoardCellState boardCellState) {
+        int count, col, row, colIndex;
+        for (col = mMinCol; col <= mMaxCol; col++) {
+            row = mMinRow;
+            count = DEFAULT_COUNT;
+            colIndex = col;
+            while (count < WIN_COUNT && row <= mMaxRow && colIndex <= mMaxCol) {
+                if (mItemCaros[row][colIndex].getBoardCellState() == boardCellState) count++;
+                else count = DEFAULT_COUNT;
+                row++;
+                colIndex++;
+            }
+            if (count >= WIN_COUNT) return true;
+        }
+        return false;
+    }
+
+    private boolean checkWinRightDiagonalDown(BoardCellState boardCellState) {
+        int count, col, row, rowIndex;
+        for (row = mMinRow; row <= mMaxRow; row++) {
+            rowIndex = row;
+            count = DEFAULT_COUNT;
+            col = mMinCol;
+            while (count < WIN_COUNT && rowIndex <= mMaxRow && col <= mMaxCol) {
+                if (mItemCaros[rowIndex][col].getBoardCellState() == boardCellState) count++;
+                else count = DEFAULT_COUNT;
+                rowIndex++;
+                col++;
+            }
+            if (count >= WIN_COUNT) return true;
+        }
+        return false;
+    }
+
+    private boolean checkWinLeftDiagonalUp(BoardCellState boardCellState) {
+        int count, col, row, colIndex;
+        for (col = mMinCol; col <= mMaxCol; col++) {
+            row = mMaxRow;
+            count = DEFAULT_COUNT;
+            colIndex = col;
+            while (count < WIN_COUNT && row >= mMinRow && colIndex <= mMaxCol) {
+                if (mItemCaros[row][colIndex].getBoardCellState() == boardCellState) count++;
+                else count = DEFAULT_COUNT;
+                row--;
+                colIndex++;
+            }
+            if (count >= WIN_COUNT) return true;
+        }
+        return false;
+    }
+
+    private boolean checkWinLeftDiagonalDown(BoardCellState boardCellState) {
+        int count, col, row, rowIndex;
+        for (row = mMinRow; row <= mMaxRow; row++) {
+            rowIndex = row;
+            count = DEFAULT_COUNT;
+            col = mMinCol;
+            while (count < WIN_COUNT && rowIndex >= mMinRow && col <= mMaxCol) {
+                if (mItemCaros[rowIndex][col].getBoardCellState() == boardCellState) count++;
+                else count = DEFAULT_COUNT;
+                rowIndex--;
+                col++;
+            }
+            if (count >= WIN_COUNT) return true;
+        }
+        return false;
+    }
+
+    public GameState getGameState() {
+        return mGameState;
     }
 }
 

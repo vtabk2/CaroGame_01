@@ -75,65 +75,73 @@
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:orientation="vertical">
+            android:orientation="horizontal">
 
-            <TextView
-                style="@style/devices_list_type_title"
-                android:text="@string/paired_devices"/>
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/text_view_no_paired_devices"
-                style="@style/no_devices"
-                android:text="@string/no_paired_devices"/>
+                <TextView
+                    style="@style/devices_list_type_title"
+                    android:text="@string/paired_devices"/>
 
-            <android.support.v7.widget.RecyclerView
-                android:id="@+id/recycler_view_paired_devices"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"/>
+                <TextView
+                    android:id="@+id/text_view_no_paired_devices"
+                    style="@style/no_devices"
+                    android:text="@string/no_paired_devices"/>
 
-        </LinearLayout>
+                <android.support.v7.widget.RecyclerView
+                    android:id="@+id/recycler_view_paired_devices"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"/>
+            </LinearLayout>
 
-        <include layout="@layout/line_break"/>
+            <View
+                android:layout_width="@dimen/line_break_height"
+                android:layout_height="match_parent"
+                android:background="@android:color/darker_gray"/>
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:orientation="vertical">
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:orientation="vertical">
 
-            <TextView
-                style="@style/devices_list_type_title"
-                android:text="@string/available_device"/>
+                <TextView
+                    style="@style/devices_list_type_title"
+                    android:text="@string/available_device"/>
 
-            <TextView
-                android:id="@+id/text_view_no_available_devices"
-                style="@style/no_devices"
-                android:text="@string/no_available_devices"/>
+                <TextView
+                    android:id="@+id/text_view_no_available_devices"
+                    style="@style/no_devices"
+                    android:text="@string/no_available_devices"/>
 
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center">
-
-                <ProgressBar
-                    android:id="@+id/progress_bar_loading"
-                    android:layout_width="wrap_content"
+                <RelativeLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:visibility="gone"/>
-            </RelativeLayout>
+                    android:gravity="center">
 
-            <android.support.v7.widget.RecyclerView
-                android:id="@+id/recycler_view_available_devices"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"/>
+                    <ProgressBar
+                        android:id="@+id/progress_bar_loading"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:visibility="gone"/>
+                </RelativeLayout>
 
+                <android.support.v7.widget.RecyclerView
+                    android:id="@+id/recycler_view_available_devices"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"/>
+            </LinearLayout>
         </LinearLayout>
-
-        <include layout="@layout/line_break"/>
 
     </LinearLayout>
+
+    <include layout="@layout/line_break"/>
 
     <LinearLayout
         android:layout_width="match_parent"

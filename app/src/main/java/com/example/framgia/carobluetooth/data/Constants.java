@@ -28,4 +28,5 @@ public interface Constants {
     int CELL_SIZE = 80;
     int COL = 500;
     int ROW = 500;
+    int DEFAULT_INTENT_VALUE = -1;
 }

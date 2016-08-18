@@ -5,8 +5,8 @@ import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -26,15 +26,21 @@ import android.widget.HorizontalScrollView;
 
 import com.example.framgia.carobluetooth.R;
 import com.example.framgia.carobluetooth.data.Constants;
+import com.example.framgia.carobluetooth.data.model.GameData;
 import com.example.framgia.carobluetooth.service.BluetoothConnectionService;
 import com.example.framgia.carobluetooth.ui.customview.BoardView;
+import com.example.framgia.carobluetooth.ui.listener.OnSendGameData;
 import com.example.framgia.carobluetooth.utility.ToastUtils;
+
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.util.Date;
 
-public class BoardActivity extends AppCompatActivity implements View.OnClickListener, Constants {
+public class BoardActivity extends AppCompatActivity implements View.OnClickListener, Constants,
+    OnSendGameData {
     private static final int REQUEST_CONNECT_DEVICE = 1;
     private static final int REQUEST_ENABLE_BLUETOOTH = 2;
     private static final int REQUEST_WRITE_EXTERNAL_STORAGE = 3;
@@ -140,13 +146,13 @@ public class BoardActivity extends AppCompatActivity implements View.OnClickList
         if (mBluetoothConnectionService != null) mBluetoothConnectionService.stop();
     }
 
-    private void sendMessage(String message) {
+    @Override
+    public void sendGameData(GameData gameData) {
         if (mBluetoothConnectionService.getState() != STATE_CONNECTED) {
             ToastUtils.showToast(this, R.string.not_connected);
             return;
         }
-        if (message.length() > 0)
-            mBluetoothConnectionService.write(message.getBytes());
+        mBluetoothConnectionService.write(gameData);
     }
 
     private final Handler mHandler = new Handler() {
@@ -156,14 +162,14 @@ public class BoardActivity extends AppCompatActivity implements View.OnClickList
                 case MESSAGE_STATE_CHANGE:
                     switch (message.arg1) {
                         case STATE_CONNECTED:
-                            // TODO: 15/08/2016
+                            // TODO: 15/08/2016 show state connected
                             break;
                         case STATE_CONNECTING:
-                            // TODO: 15/08/2016
+                            // TODO: 15/08/2016 show state connecting
                             break;
                         case STATE_LISTEN:
                         case STATE_NONE:
-                            // TODO: 15/08/2016
+                            // TODO: 15/08/2016 show state listen
                             break;
                     }
                     break;
@@ -171,8 +177,18 @@ public class BoardActivity extends AppCompatActivity implements View.OnClickList
                     // TODO: 15/08/2016
                     break;
                 case MESSAGE_READ:
-                    ToastUtils.showToast(getApplicationContext(),
-                        new String((byte[]) message.obj, 0, message.arg1));
+                    try {
+                        ByteArrayInputStream byteArrayInputStream =
+                            new ByteArrayInputStream((byte[]) message.obj);
+                        ObjectInputStream objectInputStream =
+                            new ObjectInputStream(byteArrayInputStream);
+                        GameData gameData = (GameData) objectInputStream.readObject();
+                        objectInputStream.close();
+                        byteArrayInputStream.close();
+                        // TODO: 18/08/2016 update GameData to BoardState
+                    } catch (IOException | ClassNotFoundException e) {
+                        ToastUtils.showToast(getApplicationContext(), R.string.something_error);
+                    }
                     break;
                 case MESSAGE_DEVICE_NAME:
                     ToastUtils.showToast(getApplicationContext(),

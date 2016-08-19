@@ -1,9 +1,11 @@
 package com.example.framgia.carobluetooth.data.enums;
 
+import java.io.Serializable;
+
 /**
  * Created by framgia on 17/08/2016.
  */
-public enum BoardCellState {
+public enum BoardCellState implements Serializable{
     EMPTY(0),
     PLAYER_X(1),
     PLAYER_O(2);

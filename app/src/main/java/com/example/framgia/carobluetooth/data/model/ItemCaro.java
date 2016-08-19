@@ -2,10 +2,12 @@ package com.example.framgia.carobluetooth.data.model;
 
 import com.example.framgia.carobluetooth.data.enums.BoardCellState;
 
+import java.io.Serializable;
+
 /**
  * Created by framgia on 17/08/2016.
  */
-public class ItemCaro {
+public class ItemCaro implements Serializable{
     private int mPosX;
     private int mPosY;
     private BoardCellState mBoardCellState;

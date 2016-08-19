@@ -14,15 +14,23 @@ import android.view.View;
 import com.example.framgia.carobluetooth.R;
 import com.example.framgia.carobluetooth.data.Constants;
 import com.example.framgia.carobluetooth.data.enums.BoardCellState;
+import com.example.framgia.carobluetooth.data.enums.GameState;
+import com.example.framgia.carobluetooth.data.enums.Navigation;
+import com.example.framgia.carobluetooth.data.enums.TurnGame;
+import com.example.framgia.carobluetooth.data.model.GameData;
 import com.example.framgia.carobluetooth.data.model.ItemCaro;
+import com.example.framgia.carobluetooth.ui.listener.OnSendGameData;
 
 public class BoardView extends View implements Constants {
     private Paint mLinePaint, mBmpPaint;
     private Bitmap mBitmapBackground, mBitmapPlayerX, mBitmapPlayerO;
     private Rect mRectTable = new Rect();
     private Rect mRectCell = new Rect();
-    private boolean isPlayerX = true;
+    private boolean mIsPlayerX = true;
     private ItemCaro[][] mItemCaros;
+    private TurnGame mTurnGame;
+    private GameData mGameData;
+    private OnSendGameData mOnSendGameData;
 
     public BoardView(Context context) {
         super(context);
@@ -35,6 +43,9 @@ public class BoardView extends View implements Constants {
         mLinePaint.setStrokeWidth(STROKE_WIDTH);
         mLinePaint.setStyle(Style.STROKE);
         mRectCell.set(MARGIN, MARGIN, CELL_SIZE, CELL_SIZE);
+        mGameData = new GameData();
+        mTurnGame = TurnGame.YOUR_TURN;
+        mOnSendGameData = (OnSendGameData) getContext();
     }
 
     private void initBoard() {
@@ -107,22 +118,30 @@ public class BoardView extends View implements Constants {
             case MotionEvent.ACTION_DOWN:
                 return true;
             case MotionEvent.ACTION_UP:
-                int curX = (int) event.getX();
-                int curY = (int) event.getY();
-                if (curX <= mRectTable.right && curX >= mRectTable.left
-                    && curY <= mRectTable.bottom && curY >= mRectTable.top) {
-                    int colIndex = (curX - MARGIN) / CELL_SIZE;
-                    int rowIndex = (curY - MARGIN) / CELL_SIZE;
-                    if (mItemCaros[rowIndex][colIndex].getBoardCellState() != BoardCellState.EMPTY)
-                        return true;
-                    if (isPlayerX) {
-                        mItemCaros[rowIndex][colIndex].setBoardCellState(BoardCellState.PLAYER_X);
-                    } else {
-                        mItemCaros[rowIndex][colIndex].setBoardCellState(BoardCellState.PLAYER_O);
+                if (mTurnGame == TurnGame.YOUR_TURN) {
+                    int curX = (int) event.getX();
+                    int curY = (int) event.getY();
+                    if (curX <= mRectTable.right && curX >= mRectTable.left
+                        && curY <= mRectTable.bottom && curY >= mRectTable.top) {
+                        int colIndex = (curX - MARGIN) / CELL_SIZE;
+                        int rowIndex = (curY - MARGIN) / CELL_SIZE;
+                        if (mItemCaros[rowIndex][colIndex].getBoardCellState() !=
+                            BoardCellState.EMPTY)
+                            return true;
+                        if (mIsPlayerX) {
+                            mItemCaros[rowIndex][colIndex]
+                                .setBoardCellState(BoardCellState.PLAYER_X);
+                        } else {
+                            mItemCaros[rowIndex][colIndex]
+                                .setBoardCellState(BoardCellState.PLAYER_O);
+                        }
+                        invalidate();
+                        mGameData.updateGameData(mItemCaros[rowIndex][colIndex], GameState
+                            .NONE, mTurnGame, Navigation.NONE);
+                        mOnSendGameData.sendGameData(mGameData);
                     }
-                    invalidate();
+                    return true;
                 }
-                return true;
         }
         return false;
     }

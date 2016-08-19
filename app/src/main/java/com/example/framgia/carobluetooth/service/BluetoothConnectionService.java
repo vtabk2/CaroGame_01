@@ -13,10 +13,13 @@ import android.support.annotation.StringRes;
 
 import com.example.framgia.carobluetooth.R;
 import com.example.framgia.carobluetooth.data.Constants;
+import com.example.framgia.carobluetooth.data.model.GameData;
 import com.example.framgia.carobluetooth.utility.ToastUtils;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.util.UUID;
 
@@ -121,13 +124,13 @@ public class BluetoothConnectionService {
         setState(Constants.STATE_NONE);
     }
 
-    public void write(byte[] out) {
+    public void write(GameData gameData) {
         ConnectedThread connectedThread;
         synchronized (this) {
             if (mState != Constants.STATE_CONNECTED) return;
             connectedThread = mConnectedThread;
         }
-        connectedThread.write(out);
+        connectedThread.write(gameData);
     }
 
     private void connectionError(@StringRes int stringRes) {
@@ -238,12 +241,12 @@ public class BluetoothConnectionService {
     }
 
     private class ConnectedThread extends Thread {
-        private final BluetoothSocket mmSocket;
+        private final BluetoothSocket mSocket;
         private final InputStream mInputStream;
         private final OutputStream mOutputStream;
 
         public ConnectedThread(BluetoothSocket socket) {
-            mmSocket = socket;
+            mSocket = socket;
             InputStream inputStream = null;
             OutputStream outputStream = null;
             try {
@@ -258,11 +261,9 @@ public class BluetoothConnectionService {
 
         public void run() {
             byte[] buffer = new byte[BYTE_ARRAY_SIZE];
-            int bytes;
             while (true) {
                 try {
-                    bytes = mInputStream.read(buffer);
-                    mHandler.obtainMessage(Constants.MESSAGE_READ, bytes, -1, buffer)
+                    mHandler.obtainMessage(Constants.MESSAGE_READ, mInputStream.read(buffer), -1, buffer)
                         .sendToTarget();
                 } catch (IOException e) {
                     connectionError(R.string.device_connection_was_lost);
@@ -271,11 +272,16 @@ public class BluetoothConnectionService {
             }
         }
 
-        public void write(byte[] buffer) {
+        public void write(GameData gameData) {
             try {
-                mOutputStream.write(buffer);
-                mHandler.obtainMessage(Constants.MESSAGE_WRITE, -1, -1, buffer)
-                    .sendToTarget();
+                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                ObjectOutputStream objectOutputStream =
+                    new ObjectOutputStream(byteArrayOutputStream);
+                objectOutputStream.writeObject(gameData);
+                mOutputStream.write(byteArrayOutputStream.toByteArray());
+                objectOutputStream.close();
+                byteArrayOutputStream.close();
+                mHandler.obtainMessage(Constants.MESSAGE_WRITE, -1, -1, gameData).sendToTarget();
             } catch (IOException e) {
                 ToastUtils.showToast(mContext, R.string.something_error);
             }
@@ -283,7 +289,7 @@ public class BluetoothConnectionService {
 
         public void cancel() {
             try {
-                mmSocket.close();
+                mSocket.close();
             } catch (IOException e) {
                 ToastUtils.showToast(mContext, R.string.something_error);
             }

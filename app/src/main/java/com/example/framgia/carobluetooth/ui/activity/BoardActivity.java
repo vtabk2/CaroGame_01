@@ -63,9 +63,9 @@ public class BoardActivity extends AppCompatActivity implements View.OnClickList
     private SharedPreferences.Editor mEditor;
     private BoardView mBoardView;
     private Button mButtonPlay;
-    private LinearLayout mLinearLayoutPlayer1, mLinearLayoutPlayer2;
-    private TextView mTextViewWinLose1, mTextViewWinLose2;
-    private ImageView mImageViewPlayer2;
+    private LinearLayout mLinearLayoutPlayerLeft, mLinearLayoutPlayerRight;
+    private TextView mTextViewWinLoseLeft, mTextViewWinLoseRight;
+    private ImageView mImageViewPlayerRight;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,15 +76,16 @@ public class BoardActivity extends AppCompatActivity implements View.OnClickList
 
     private void initViews() {
         mBoardView = new BoardView(this);
-        HorizontalScrollView horizontalScrollView =
-            (HorizontalScrollView) findViewById(R.id.horizontal_scroll_board);
-        horizontalScrollView.addView(mBoardView);
+        ((HorizontalScrollView) findViewById(R.id.horizontal_scroll_board)).addView(mBoardView);
         mButtonPlay = (Button) findViewById(R.id.button_play);
-        mLinearLayoutPlayer1 = (LinearLayout) findViewById(R.id.layout_profile_player1);
-        mLinearLayoutPlayer2 = (LinearLayout) findViewById(R.id.layout_profile_player2);
-        mImageViewPlayer2 = (ImageView) mLinearLayoutPlayer2.findViewById(R.id.image_player);
-        mTextViewWinLose1 = (TextView) mLinearLayoutPlayer1.findViewById(R.id.text_player_win_lose);
-        mTextViewWinLose2 = (TextView) mLinearLayoutPlayer2.findViewById(R.id.text_player_win_lose);
+        mLinearLayoutPlayerLeft = (LinearLayout) findViewById(R.id.layout_profile_player_left);
+        mLinearLayoutPlayerRight = (LinearLayout) findViewById(R.id.layout_profile_player_right);
+        mImageViewPlayerRight =
+            (ImageView) mLinearLayoutPlayerRight.findViewById(R.id.image_player);
+        mTextViewWinLoseLeft =
+            (TextView) mLinearLayoutPlayerLeft.findViewById(R.id.text_player_win_lose);
+        mTextViewWinLoseRight =
+            (TextView) mLinearLayoutPlayerRight.findViewById(R.id.text_player_win_lose);
     }
 
     private void initBluetooth() {
@@ -153,7 +154,7 @@ public class BoardActivity extends AppCompatActivity implements View.OnClickList
             String winLose = String.format(Locale.getDefault(), getString(R.string.win_lose_format),
                 mSharedPreferences.getInt(WIN, WIN_LOSE_DEFAULT),
                 mSharedPreferences.getInt(LOSE, WIN_LOSE_DEFAULT));
-            mTextViewWinLose1.setText(winLose);
+            mTextViewWinLoseLeft.setText(winLose);
             sendGameData(
                 new GameData(null, GameState.UPDATE_INFO, TurnGame.OPPONENT_TURN, null, winLose));
         }
@@ -442,25 +443,25 @@ public class BoardActivity extends AppCompatActivity implements View.OnClickList
                 finish();
                 break;
             case UPDATE_INFO:
-                mImageViewPlayer2.setImageResource(R.drawable.img_o);
-                mTextViewWinLose2.setText(gameData.getWinLose());
+                mImageViewPlayerRight.setImageResource(R.drawable.img_o);
+                mTextViewWinLoseRight.setText(gameData.getWinLose());
                 break;
         }
     }
 
     private void handleOpponentTurn(GameData gameData) {
-        mTextViewWinLose1.setText(gameData.getWinLose());
+        mTextViewWinLoseLeft.setText(gameData.getWinLose());
         String winLose = String.format(Locale.getDefault(), getString(R.string.win_lose_format),
             mSharedPreferences.getInt(WIN, WIN_LOSE_DEFAULT),
             mSharedPreferences.getInt(LOSE, WIN_LOSE_DEFAULT));
-        mTextViewWinLose2.setText(winLose);
+        mTextViewWinLoseRight.setText(winLose);
         if (gameData.getGameState() == GameState.RESTART_GAME) {
             mBoardView.hideDialogRestartGame();
             ToastUtils.showToast(this, R.string.start_new_game);
             sendGameData(new GameData(null, GameState.RESTART_GAME, TurnGame.NONE, null, winLose));
         } else {
             mButtonPlay.setVisibility(View.INVISIBLE);
-            mImageViewPlayer2.setImageResource(R.drawable.img_o);
+            mImageViewPlayerRight.setImageResource(R.drawable.img_o);
             sendGameData(new GameData(null, GameState.UPDATE_INFO, TurnGame.NONE, null, winLose));
         }
     }
@@ -472,8 +473,8 @@ public class BoardActivity extends AppCompatActivity implements View.OnClickList
 
     @Override
     public void setPlayerBackground(@DrawableRes int drawableRes1, @DrawableRes int drawableRes2) {
-        mLinearLayoutPlayer1.setBackground(ContextCompat.getDrawable(this, drawableRes1));
-        mLinearLayoutPlayer2.setBackground(ContextCompat.getDrawable(this, drawableRes2));
+        mLinearLayoutPlayerLeft.setBackground(ContextCompat.getDrawable(this, drawableRes1));
+        mLinearLayoutPlayerRight.setBackground(ContextCompat.getDrawable(this, drawableRes2));
     }
 
     @Override

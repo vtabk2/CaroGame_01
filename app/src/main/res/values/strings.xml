@@ -57,4 +57,5 @@
     <string name="opponent_end_game">Your opponent choose end game</string>
     <string name="opponent_surrender">Your opponent surrender, You win!</string>
     <string name="start_new_game">Start new game</string>
+    <string name="computer_easy">Easy: </string>
 </resources>

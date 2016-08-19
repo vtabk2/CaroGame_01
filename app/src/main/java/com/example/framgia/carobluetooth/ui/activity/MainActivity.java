@@ -18,6 +18,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void initViews() {
+        findViewById(R.id.button_single_player).setOnClickListener(this);
         findViewById(R.id.button_multiplayer).setOnClickListener(this);
         findViewById(R.id.button_about).setOnClickListener(this);
         findViewById(R.id.button_exit).setOnClickListener(this);
@@ -55,6 +56,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
+            case R.id.button_single_player:
+                startActivity(new Intent(this, SinglePlayerActivity.class));
+                break;
             case R.id.button_multiplayer:
                 startActivity(new Intent(this, BoardActivity.class));
                 break;

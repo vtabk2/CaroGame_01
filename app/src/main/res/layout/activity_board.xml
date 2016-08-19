@@ -58,7 +58,7 @@
         android:orientation="horizontal">
 
         <include
-            android:id="@+id/layout_profile_player1"
+            android:id="@+id/layout_profile_player_left"
             layout="@layout/layout_player_item"
             android:layout_width="@dimen/layout_player_item_width"
             android:layout_height="wrap_content"
@@ -77,13 +77,13 @@
             android:text="@string/btn_play"/>
 
         <include
-            android:id="@+id/layout_profile_player2"
+            android:id="@+id/layout_profile_player_right"
             layout="@layout/layout_player_item"
             android:layout_width="@dimen/layout_player_item_width"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
             android:layout_alignParentRight="true"
-            android:layout_alignTop="@+id/layout_profile_player1"
+            android:layout_alignTop="@+id/layout_profile_player_left"
             android:layout_marginEnd="@dimen/margin_small"
             android:layout_marginRight="@dimen/margin_small"/>
     </RelativeLayout>

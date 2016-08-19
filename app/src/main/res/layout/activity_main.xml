@@ -18,8 +18,7 @@
     <Button
         android:id="@+id/button_single_player"
         style="@style/button_main_screen"
-        android:text="@string/single_player"
-        android:visibility="gone"/>
+        android:text="@string/single_player"/>
 
     <Button
         android:id="@+id/button_multiplayer"

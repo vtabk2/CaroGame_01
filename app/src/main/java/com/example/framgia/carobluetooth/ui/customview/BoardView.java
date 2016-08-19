@@ -12,7 +12,7 @@ import android.graphics.Paint.Style;
 import android.graphics.Rect;
 import android.support.v7.app.AlertDialog;
 import android.view.MotionEvent;
-import android.view.View;
+import android.widget.ScrollView;
 
 import com.example.framgia.carobluetooth.R;
 import com.example.framgia.carobluetooth.data.Constants;
@@ -23,25 +23,27 @@ import com.example.framgia.carobluetooth.data.enums.TurnGame;
 import com.example.framgia.carobluetooth.data.model.GameData;
 import com.example.framgia.carobluetooth.data.model.ItemCaro;
 import com.example.framgia.carobluetooth.ui.listener.OnGetBoardInfo;
+import com.example.framgia.carobluetooth.utility.ConvertUtils;
 import com.example.framgia.carobluetooth.utility.ToastUtils;
 
 import java.util.Locale;
 
-public class BoardView extends View implements Constants {
-    private Paint mLinePaint, mBmpPaint;
-    private Bitmap mBitmapBackground, mBitmapPlayerX, mBitmapPlayerO;
-    private Rect mRectTable = new Rect();
-    private Rect mRectCell = new Rect();
+public class BoardView extends ScrollView implements Constants {
+    protected Paint mLinePaint, mBmpPaint;
+    protected Bitmap mBitmapBackground, mBitmapPlayerX, mBitmapPlayerO;
+    protected Rect mRectTable = new Rect();
+    protected Rect mRectCell = new Rect();
     private boolean mIsPlayerX = true;
-    private ItemCaro[][] mItemCaros;
-    private TurnGame mTurnGame;
-    private GameData mGameData;
-    private int mMinCol, mMinRow, mMaxCol, mMaxRow;
+    protected ItemCaro[][] mItemCaros;
+    protected TurnGame mTurnGame;
+    protected GameData mGameData;
+    protected int mMinCol, mMinRow, mMaxCol, mMaxRow;
     private OnGetBoardInfo mOnGetBoardInfo;
-    private GameState mGameState;
-    private SharedPreferences mSharedPreferences;
-    private SharedPreferences.Editor mEditor;
+    protected SharedPreferences mSharedPreferences;
+    protected SharedPreferences.Editor mEditor;
     private AlertDialog mDialogRestartGame;
+    protected GameState mGameState;
+    protected int mCellSize;
 
     public BoardView(Context context) {
         super(context);
@@ -53,22 +55,22 @@ public class BoardView extends View implements Constants {
         mLinePaint.setColor(Color.BLACK);
         mLinePaint.setStrokeWidth(STROKE_WIDTH);
         mLinePaint.setStyle(Style.STROKE);
-        mRectCell.set(MARGIN, MARGIN, CELL_SIZE, CELL_SIZE);
+        mCellSize = ConvertUtils.convertDpToPx(Constants.CELL_SIZE_DP);
+        mRectCell.set(MARGIN, MARGIN, mCellSize, mCellSize);
         mGameData = new GameData();
         mTurnGame = TurnGame.YOUR_TURN;
-        mOnGetBoardInfo = (OnGetBoardInfo) getContext();
         mSharedPreferences = getContext().getSharedPreferences(SHARED_PREFERENCES,
             getContext().MODE_PRIVATE);
         mEditor = mSharedPreferences.edit();
     }
 
-    private void initBoard() {
-        mRectTable.set(MARGIN, MARGIN, (CELL_SIZE * COL) + MARGIN, (CELL_SIZE * ROW) + MARGIN);
+    protected void initBoard() {
+        mRectTable.set(MARGIN, MARGIN, (mCellSize * COL) + MARGIN, (mCellSize * ROW) + MARGIN);
         mItemCaros = new ItemCaro[ROW][COL];
         resetBoard();
     }
 
-    private void resetBoard() {
+    protected void resetBoard() {
         for (int i = 0; i < ROW; i++)
             for (int j = 0; j < COL; j++)
                 if (mItemCaros[i][j] != null)
@@ -95,20 +97,22 @@ public class BoardView extends View implements Constants {
                 mBitmapBackground.getHeight()), mRectTable, mBmpPaint);
         canvas.drawRect(mRectTable, mLinePaint);
         for (int i = 1; i < ROW; i++)
-            canvas.drawLine(x, y + i * CELL_SIZE, xr, x + i * CELL_SIZE, mLinePaint);
+            canvas.drawLine(x, y + i * mCellSize, xr, x + i * mCellSize, mLinePaint);
         for (int i = 1; i < COL; i++)
-            canvas.drawLine(x + i * CELL_SIZE, y, x + i * CELL_SIZE, yb, mLinePaint);
+            canvas.drawLine(x + i * mCellSize, y, x + i * mCellSize, yb, mLinePaint);
         for (int row = 0; row < ROW; row++) {
             for (int col = 0; col < COL; col++) {
                 switch (mItemCaros[row][col].getBoardCellState()) {
                     case PLAYER_X:
+                    case HUMAN:
                         mRectCell
-                            .offsetTo(col * CELL_SIZE + PADDING, row * CELL_SIZE + PADDING);
+                            .offsetTo(col * mCellSize + PADDING, row * mCellSize + PADDING);
                         canvas.drawBitmap(mBitmapPlayerX, null, mRectCell, mBmpPaint);
                         break;
                     case PLAYER_O:
+                    case MACHINE:
                         mRectCell
-                            .offsetTo(col * CELL_SIZE + PADDING, row * CELL_SIZE + PADDING);
+                            .offsetTo(col * mCellSize + PADDING, row * mCellSize + PADDING);
                         canvas.drawBitmap(mBitmapPlayerO, null, mRectCell, mBmpPaint);
                         break;
                 }
@@ -119,6 +123,7 @@ public class BoardView extends View implements Constants {
     @Override
     protected void onSizeChanged(int width, int height, int oldWidth, int oldHeight) {
         super.onSizeChanged(width, height, oldWidth, oldHeight);
+        mOnGetBoardInfo = (OnGetBoardInfo) getContext();
         initBoard();
     }
 
@@ -128,7 +133,7 @@ public class BoardView extends View implements Constants {
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        setMeasuredDimension(COL * CELL_SIZE, ROW * CELL_SIZE);
+        setMeasuredDimension(COL * mCellSize, ROW * mCellSize);
     }
 
     @Override
@@ -152,8 +157,8 @@ public class BoardView extends View implements Constants {
                     int curY = (int) event.getY();
                     if (curX <= mRectTable.right && curX >= mRectTable.left
                         && curY <= mRectTable.bottom && curY >= mRectTable.top) {
-                        int colIndex = (curX - MARGIN) / CELL_SIZE;
-                        int rowIndex = (curY - MARGIN) / CELL_SIZE;
+                        int colIndex = (curX - MARGIN) / mCellSize;
+                        int rowIndex = (curY - MARGIN) / mCellSize;
                         if (colIndex < mMinCol) mMinCol = colIndex;
                         if (colIndex > mMaxCol) mMaxCol = colIndex;
                         if (rowIndex < mMinRow) mMinRow = rowIndex;
@@ -187,7 +192,7 @@ public class BoardView extends View implements Constants {
         return false;
     }
 
-    private void showEndGame() {
+    protected void showEndGame() {
         String title = null;
         if (mIsPlayerX && mGameState == GameState.PLAYER_X_WIN) {
             title = getContext().getString(R.string.message_win_game_play);
@@ -245,21 +250,31 @@ public class BoardView extends View implements Constants {
         } else ToastUtils.showToast(getContext(), R.string.not_connected_any_device);
     }
 
-    private boolean isEndGame(BoardCellState boardCellState) {
-        boolean isEndGame = checkWinVertical(boardCellState) ||
+    protected boolean checkWin(BoardCellState boardCellState) {
+        return checkWinVertical(boardCellState) ||
             checkWinHorizontal(boardCellState) ||
             checkWinRightDiagonalUp(boardCellState) ||
             checkWinRightDiagonalDown(boardCellState) ||
             checkWinLeftDiagonalUp(boardCellState) ||
             checkWinLeftDiagonalDown(boardCellState);
-        if (isEndGame && boardCellState == BoardCellState.PLAYER_X)
-            mGameState = GameState.PLAYER_X_WIN;
-        else if (isEndGame && boardCellState == BoardCellState.PLAYER_O)
-            mGameState = GameState.PLAYER_X_LOSE;
-        return isEndGame;
     }
 
-    private boolean checkWinVertical(BoardCellState boardCellState) {
+    protected boolean isEndGame(BoardCellState boardCellState) {
+        if (!checkWin(boardCellState)) return false;
+        switch (boardCellState) {
+            case PLAYER_X:
+            case HUMAN:
+                mGameState = GameState.PLAYER_X_WIN;
+                break;
+            case PLAYER_O:
+            case MACHINE:
+                mGameState = GameState.PLAYER_X_LOSE;
+                break;
+        }
+        return true;
+    }
+
+    protected boolean checkWinVertical(BoardCellState boardCellState) {
         int count, row;
         for (int col = mMinCol; col <= mMaxCol; col++) {
             row = mMinRow;
@@ -274,7 +289,7 @@ public class BoardView extends View implements Constants {
         return false;
     }
 
-    private boolean checkWinHorizontal(BoardCellState boardCellState) {
+    protected boolean checkWinHorizontal(BoardCellState boardCellState) {
         int count, col;
         for (int row = mMinRow; row <= mMaxRow; row++) {
             col = mMinCol;
@@ -289,7 +304,7 @@ public class BoardView extends View implements Constants {
         return false;
     }
 
-    private boolean checkWinRightDiagonalUp(BoardCellState boardCellState) {
+    protected boolean checkWinRightDiagonalUp(BoardCellState boardCellState) {
         int count, col, row, colIndex;
         for (col = mMinCol; col <= mMaxCol; col++) {
             row = mMinRow;
@@ -306,7 +321,7 @@ public class BoardView extends View implements Constants {
         return false;
     }
 
-    private boolean checkWinRightDiagonalDown(BoardCellState boardCellState) {
+    protected boolean checkWinRightDiagonalDown(BoardCellState boardCellState) {
         int count, col, row, rowIndex;
         for (row = mMinRow; row <= mMaxRow; row++) {
             rowIndex = row;
@@ -323,7 +338,7 @@ public class BoardView extends View implements Constants {
         return false;
     }
 
-    private boolean checkWinLeftDiagonalUp(BoardCellState boardCellState) {
+    protected boolean checkWinLeftDiagonalUp(BoardCellState boardCellState) {
         int count, col, row, colIndex;
         for (col = mMinCol; col <= mMaxCol; col++) {
             row = mMaxRow;
@@ -340,7 +355,7 @@ public class BoardView extends View implements Constants {
         return false;
     }
 
-    private boolean checkWinLeftDiagonalDown(BoardCellState boardCellState) {
+    protected boolean checkWinLeftDiagonalDown(BoardCellState boardCellState) {
         int count, col, row, rowIndex;
         for (row = mMinRow; row <= mMaxRow; row++) {
             rowIndex = row;

@@ -23,5 +23,6 @@
         </activity>
         <activity android:name=".ui.activity.DevicesListActivity"/>
         <activity android:name=".ui.activity.BoardActivity"/>
+        <activity android:name=".ui.activity.SinglePlayerActivity"/>
     </application>
 </manifest>

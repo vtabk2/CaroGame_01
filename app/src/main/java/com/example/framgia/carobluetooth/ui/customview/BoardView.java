@@ -21,7 +21,8 @@ import com.example.framgia.carobluetooth.data.enums.Navigation;
 import com.example.framgia.carobluetooth.data.enums.TurnGame;
 import com.example.framgia.carobluetooth.data.model.GameData;
 import com.example.framgia.carobluetooth.data.model.ItemCaro;
-import com.example.framgia.carobluetooth.ui.listener.OnSendGameData;
+import com.example.framgia.carobluetooth.ui.listener.OnGetBoardInfo;
+import com.example.framgia.carobluetooth.utility.ToastUtils;
 
 public class BoardView extends View implements Constants {
     private Paint mLinePaint, mBmpPaint;
@@ -32,8 +33,8 @@ public class BoardView extends View implements Constants {
     private ItemCaro[][] mItemCaros;
     private TurnGame mTurnGame;
     private GameData mGameData;
-    private OnSendGameData mOnSendGameData;
     private int mMinCol, mMinRow, mMaxCol, mMaxRow;
+    private OnGetBoardInfo mOnGetBoardInfo;
     private GameState mGameState;
 
     public BoardView(Context context) {
@@ -49,7 +50,7 @@ public class BoardView extends View implements Constants {
         mRectCell.set(MARGIN, MARGIN, CELL_SIZE, CELL_SIZE);
         mGameData = new GameData();
         mTurnGame = TurnGame.YOUR_TURN;
-        mOnSendGameData = (OnSendGameData) getContext();
+        mOnGetBoardInfo = (OnGetBoardInfo) getContext();
     }
 
     private void initBoard() {
@@ -129,6 +130,14 @@ public class BoardView extends View implements Constants {
             case MotionEvent.ACTION_DOWN:
                 return true;
             case MotionEvent.ACTION_UP:
+                if (mOnGetBoardInfo.getConnectionState() != STATE_CONNECTED) {
+                    ToastUtils.showToast(getContext(), R.string.not_connected_any_device);
+                    return true;
+                }
+                if (mGameState != GameState.PLAYING) {
+                    ToastUtils.showToast(getContext(), R.string.press_play_button);
+                    return true;
+                }
                 if (mTurnGame == TurnGame.YOUR_TURN) {
                     int curX = (int) event.getX();
                     int curY = (int) event.getY();
@@ -148,48 +157,66 @@ public class BoardView extends View implements Constants {
                             .setBoardCellState(BoardCellState.PLAYER_O);
                         invalidate();
                         if (isEndGame(
-                            mIsPlayerX ? BoardCellState.PLAYER_X : BoardCellState.PLAYER_O))
-                            showEndGame();
-                        else {
-                            mGameData.updateGameData(mItemCaros[rowIndex][colIndex], GameState.NONE,
+                            mIsPlayerX ? BoardCellState.PLAYER_X : BoardCellState.PLAYER_O)) {
+                            mGameData.updateGameData(mItemCaros[rowIndex][colIndex], mGameState,
                                 mTurnGame, Navigation.NONE);
-                            mOnSendGameData.sendGameData(mGameData);
-                        }
+                            showEndGame();
+                        } else mGameData.updateGameData(mItemCaros[rowIndex][colIndex],
+                            GameState.NONE, mTurnGame, Navigation.NONE);
+                        mOnGetBoardInfo.sendGameData(mGameData);
+                        mTurnGame = TurnGame.OPPONENT_TURN;
+                        if (isPlayerX()) mOnGetBoardInfo.setPlayerBackground(
+                            R.drawable.surround_item_player,
+                            R.drawable.surround_item_player_selected);
+                        else mOnGetBoardInfo.setPlayerBackground(
+                            R.drawable.surround_item_player_selected,
+                            R.drawable.surround_item_player);
                     }
                     return true;
-                }
+                } else ToastUtils.showToast(getContext(), R.string.opponent_turn);
         }
         return false;
     }
 
     private void showEndGame() {
-        mGameState = mIsPlayerX ? GameState.PLAYER_X_WIN : GameState.PLAYER_X_LOSE;
-        String message = mIsPlayerX ? getContext().getString(R.string.message_win_game_play) :
-            getContext().getString(R.string.message_lose_game_play);
+        String message = null;
+        if (mIsPlayerX && mGameState == GameState.PLAYER_X_WIN)
+            message = getContext().getString(R.string.message_win_game_play);
+        else if (mIsPlayerX && mGameState == GameState.PLAYER_X_LOSE)
+            message = getContext().getString(R.string.message_lose_game_play);
+        else if (!mIsPlayerX && mGameState == GameState.PLAYER_X_WIN)
+            message = getContext().getString(R.string.message_lose_game_play);
+        else if (!mIsPlayerX && mGameState == GameState.PLAYER_X_LOSE)
+            message = getContext().getString(R.string.message_win_game_play);
         new AlertDialog.Builder(getContext())
             .setMessage(message)
             .setPositiveButton(android.R.string.yes,
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
-                        // TODO: 19/08/2016  
+                        // TODO: 19/08/2016
                     }
                 })
             .setNegativeButton(android.R.string.no,
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
-                        // TODO: 19/08/2016
+                        mOnGetBoardInfo.onFinishGame();
                     }
                 })
             .show().setCanceledOnTouchOutside(false);
     }
 
     private boolean isEndGame(BoardCellState boardCellState) {
-        return checkWinVertical(boardCellState) ||
+        boolean isEndGame = checkWinVertical(boardCellState) ||
             checkWinHorizontal(boardCellState) ||
             checkWinRightDiagonalUp(boardCellState) ||
             checkWinRightDiagonalDown(boardCellState) ||
             checkWinLeftDiagonalUp(boardCellState) ||
             checkWinLeftDiagonalDown(boardCellState);
+        if (isEndGame && boardCellState == BoardCellState.PLAYER_X)
+            mGameState = GameState.PLAYER_X_WIN;
+        else if (isEndGame && boardCellState == BoardCellState.PLAYER_O)
+            mGameState = GameState.PLAYER_X_LOSE;
+        return isEndGame;
     }
 
     private boolean checkWinVertical(BoardCellState boardCellState) {
@@ -292,6 +319,43 @@ public class BoardView extends View implements Constants {
 
     public GameState getGameState() {
         return mGameState;
+    }
+
+    public void updateGameDataToBoardView(GameData gameData) {
+        switch (gameData.getTurnGame()) {
+            case OPPONENT_TURN:
+                mIsPlayerX = !mIsPlayerX;
+                mGameState = GameState.PLAYING;
+                break;
+            case YOUR_TURN:
+                handleYourTurn(gameData);
+                break;
+        }
+    }
+
+    private void handleYourTurn(GameData gameData) {
+        ItemCaro itemCaro = gameData.getItemCaro();
+        int rowIndex = itemCaro.getPosX();
+        int colIndex = itemCaro.getPosY();
+        ToastUtils.showToast(getContext(), R.string.your_turn);
+        GameState gameState = gameData.getGameState();
+        if (gameState != GameState.NONE) mGameState = gameState;
+        switch (itemCaro.getBoardCellState()) {
+            case PLAYER_X:
+                mItemCaros[rowIndex][colIndex].setBoardCellState(BoardCellState.PLAYER_X);
+                break;
+            case PLAYER_O:
+                mItemCaros[rowIndex][colIndex].setBoardCellState(BoardCellState.PLAYER_O);
+                break;
+        }
+        if (mGameState == GameState.PLAYER_X_WIN || mGameState == GameState.PLAYER_X_LOSE)
+            showEndGame();
+        invalidate();
+        mTurnGame = TurnGame.YOUR_TURN;
+    }
+
+    public boolean isPlayerX() {
+        return mIsPlayerX;
     }
 }
 

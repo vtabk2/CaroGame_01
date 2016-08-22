@@ -47,4 +47,10 @@
     <string name="no_app_can_share_image">Your device has no app to share image</string>
     <string name="message_win_game_play">You win !</string>
     <string name="message_lose_game_play">You lose!</string>
+    <string name="not_connected_any_device">You are not connected to any device, find and connect
+        other device to play</string>
+    <string name="press_play_button">Connected, press Play button to start game</string>
+    <string name="opponent_turn">Opponent turn</string>
+    <string name="your_turn">Your turn</string>
+    <string name="win_lose_format">W/L: %1$d/%2$d</string>
 </resources>

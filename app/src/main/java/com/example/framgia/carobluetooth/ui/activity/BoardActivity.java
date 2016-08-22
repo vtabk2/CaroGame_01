@@ -15,6 +15,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
+import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -24,14 +25,18 @@ import android.text.format.DateFormat;
 import android.view.View;
 import android.widget.Button;
 import android.widget.HorizontalScrollView;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import com.example.framgia.carobluetooth.R;
 import com.example.framgia.carobluetooth.data.Constants;
 import com.example.framgia.carobluetooth.data.enums.GameState;
+import com.example.framgia.carobluetooth.data.enums.TurnGame;
 import com.example.framgia.carobluetooth.data.model.GameData;
 import com.example.framgia.carobluetooth.service.BluetoothConnectionService;
 import com.example.framgia.carobluetooth.ui.customview.BoardView;
-import com.example.framgia.carobluetooth.ui.listener.OnSendGameData;
+import com.example.framgia.carobluetooth.ui.listener.OnGetBoardInfo;
 import com.example.framgia.carobluetooth.utility.ToastUtils;
 
 import java.io.ByteArrayInputStream;
@@ -40,9 +45,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.Date;
+import java.util.Locale;
 
 public class BoardActivity extends AppCompatActivity implements View.OnClickListener, Constants,
-    OnSendGameData {
+    OnGetBoardInfo {
     private static final int REQUEST_CONNECT_DEVICE = 1;
     private static final int REQUEST_ENABLE_BLUETOOTH = 2;
     private static final int REQUEST_WRITE_EXTERNAL_STORAGE = 3;
@@ -54,8 +60,12 @@ public class BoardActivity extends AppCompatActivity implements View.OnClickList
     private BluetoothAdapter mBluetoothAdapter;
     private BluetoothConnectionService mBluetoothConnectionService;
     private SharedPreferences mSharedPreferences;
+    private SharedPreferences.Editor mEditor;
     private BoardView mBoardView;
     private Button mButtonPlay;
+    private LinearLayout mLinearLayoutPlayer1, mLinearLayoutPlayer2;
+    private TextView mTextViewWinLose1, mTextViewWinLose2;
+    private ImageView mImageViewPlayer2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,6 +80,11 @@ public class BoardActivity extends AppCompatActivity implements View.OnClickList
             (HorizontalScrollView) findViewById(R.id.horizontal_scroll_board);
         horizontalScrollView.addView(mBoardView);
         mButtonPlay = (Button) findViewById(R.id.button_play);
+        mLinearLayoutPlayer1 = (LinearLayout) findViewById(R.id.layout_profile_player1);
+        mLinearLayoutPlayer2 = (LinearLayout) findViewById(R.id.layout_profile_player2);
+        mImageViewPlayer2 = (ImageView) mLinearLayoutPlayer2.findViewById(R.id.image_player);
+        mTextViewWinLose1 = (TextView) mLinearLayoutPlayer1.findViewById(R.id.text_player_win_lose);
+        mTextViewWinLose2 = (TextView) mLinearLayoutPlayer2.findViewById(R.id.text_player_win_lose);
     }
 
     private void initBluetooth() {
@@ -121,10 +136,25 @@ public class BoardActivity extends AppCompatActivity implements View.OnClickList
                 showVisibility();
                 break;
             case R.id.button_play:
-                if (mBoardView == null) return;
-                mBoardView.setGameState(GameState.PLAYING);
-                mButtonPlay.setVisibility(View.INVISIBLE);
+                handlePlayButton();
                 break;
+        }
+    }
+
+    private void handlePlayButton() {
+        if (mBoardView == null) return;
+        if (getConnectionState() != STATE_CONNECTED) {
+            ToastUtils.showToast(this, R.string.not_connected_any_device);
+            return;
+        }
+        if (mBluetoothConnectionService.getState() == STATE_CONNECTED) {
+            mBoardView.setGameState(GameState.PLAYING);
+            mButtonPlay.setVisibility(View.INVISIBLE);
+            String winLose = String.format(Locale.getDefault(), getString(R.string.win_lose_format),
+                mSharedPreferences.getInt(WIN, WIN_LOSE_DEFAULT),
+                mSharedPreferences.getInt(LOSE, WIN_LOSE_DEFAULT));
+            mTextViewWinLose1.setText(winLose);
+            sendGameData(new GameData(null, null, TurnGame.OPPONENT_TURN, null, winLose));
         }
     }
 
@@ -188,18 +218,7 @@ public class BoardActivity extends AppCompatActivity implements View.OnClickList
                     // TODO: 15/08/2016
                     break;
                 case MESSAGE_READ:
-                    try {
-                        ByteArrayInputStream byteArrayInputStream =
-                            new ByteArrayInputStream((byte[]) message.obj);
-                        ObjectInputStream objectInputStream =
-                            new ObjectInputStream(byteArrayInputStream);
-                        GameData gameData = (GameData) objectInputStream.readObject();
-                        objectInputStream.close();
-                        byteArrayInputStream.close();
-                        // TODO: 18/08/2016 update GameData to BoardState
-                    } catch (IOException | ClassNotFoundException e) {
-                        ToastUtils.showToast(getApplicationContext(), R.string.something_error);
-                    }
+                    handleMessageRead(message);
                     break;
                 case MESSAGE_DEVICE_NAME:
                     ToastUtils.showToast(getApplicationContext(),
@@ -213,6 +232,22 @@ public class BoardActivity extends AppCompatActivity implements View.OnClickList
             }
         }
     };
+
+    private void handleMessageRead(Message message) {
+        try {
+            ByteArrayInputStream byteArrayInputStream =
+                new ByteArrayInputStream((byte[]) message.obj);
+            ObjectInputStream objectInputStream =
+                new ObjectInputStream(byteArrayInputStream);
+            GameData gameData = (GameData) objectInputStream.readObject();
+            objectInputStream.close();
+            byteArrayInputStream.close();
+            updateGameDataToBoard(gameData);
+            mBoardView.updateGameDataToBoardView(gameData);
+        } catch (IOException | ClassNotFoundException e) {
+            ToastUtils.showToast(getApplicationContext(), R.string.something_error);
+        }
+    }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -253,13 +288,13 @@ public class BoardActivity extends AppCompatActivity implements View.OnClickList
     }
 
     private void surrender() {
-        SharedPreferences.Editor editor = mSharedPreferences.edit();
-        editor.putInt(LOSE, mSharedPreferences.getInt(LOSE, WIN_LOSE_DEFAULT) + INCREASE_DEFAULT);
-        editor.apply();
+        mEditor.putInt(LOSE, mSharedPreferences.getInt(LOSE, WIN_LOSE_DEFAULT) + INCREASE_DEFAULT);
+        mEditor.apply();
     }
 
     private void loadSharedPreferences() {
         mSharedPreferences = getSharedPreferences(SHARED_PREFERENCES, MODE_PRIVATE);
+        mEditor = mSharedPreferences.edit();
     }
 
     private void showExitGame() {
@@ -298,7 +333,8 @@ public class BoardActivity extends AppCompatActivity implements View.OnClickList
 
     @Override
     public void onBackPressed() {
-        showBackGame();
+        if (mBoardView.getGameState() == GameState.PLAYING) showBackGame();
+        else finish();
     }
 
     @Override
@@ -369,5 +405,52 @@ public class BoardActivity extends AppCompatActivity implements View.OnClickList
         intent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(imageFile));
         if (intent.resolveActivity(getPackageManager()) != null) startActivity(intent);
         else ToastUtils.showToast(this, R.string.no_app_can_share_image);
+    }
+
+    private void updateGameDataToBoard(GameData gameData) {
+        switch (gameData.getTurnGame()) {
+            case OPPONENT_TURN:
+                handleOpponentTurn(gameData);
+                break;
+            case NONE:
+                mImageViewPlayer2.setImageResource(R.drawable.img_o);
+                mTextViewWinLose2.setText(gameData.getWinLose());
+                break;
+            case YOUR_TURN:
+                if (mBoardView.isPlayerX())
+                    setPlayerBackground(R.drawable.surround_item_player_selected,
+                        R.drawable.surround_item_player);
+                else setPlayerBackground(R.drawable.surround_item_player,
+                    R.drawable.surround_item_player_selected);
+                break;
+        }
+    }
+
+    private void handleOpponentTurn(GameData gameData) {
+        mButtonPlay.setVisibility(View.INVISIBLE);
+        mImageViewPlayer2.setImageResource(R.drawable.img_o);
+        mTextViewWinLose1.setText(gameData.getWinLose());
+        String winLose =
+            String.format(Locale.getDefault(), getString(R.string.win_lose_format),
+                mSharedPreferences.getInt(WIN, WIN_LOSE_DEFAULT),
+                mSharedPreferences.getInt(LOSE, WIN_LOSE_DEFAULT));
+        mTextViewWinLose2.setText(winLose);
+        sendGameData(new GameData(null, null, TurnGame.NONE, null, winLose));
+    }
+
+    @Override
+    public int getConnectionState() {
+        return mBluetoothConnectionService.getState();
+    }
+
+    @Override
+    public void setPlayerBackground(@DrawableRes int drawableRes1, @DrawableRes int drawableRes2) {
+        mLinearLayoutPlayer1.setBackground(ContextCompat.getDrawable(this, drawableRes1));
+        mLinearLayoutPlayer2.setBackground(ContextCompat.getDrawable(this, drawableRes2));
+    }
+
+    @Override
+    public void onFinishGame() {
+        finish();
     }
 }

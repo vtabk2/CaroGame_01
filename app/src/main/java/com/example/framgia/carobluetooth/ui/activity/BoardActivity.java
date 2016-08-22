@@ -154,7 +154,8 @@ public class BoardActivity extends AppCompatActivity implements View.OnClickList
                 mSharedPreferences.getInt(WIN, WIN_LOSE_DEFAULT),
                 mSharedPreferences.getInt(LOSE, WIN_LOSE_DEFAULT));
             mTextViewWinLose1.setText(winLose);
-            sendGameData(new GameData(null, null, TurnGame.OPPONENT_TURN, null, winLose));
+            sendGameData(
+                new GameData(null, GameState.UPDATE_INFO, TurnGame.OPPONENT_TURN, null, winLose));
         }
     }
 
@@ -276,6 +277,8 @@ public class BoardActivity extends AppCompatActivity implements View.OnClickList
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
                         surrender();
+                        sendGameData(new GameData(null, GameState.SURRENDER, TurnGame.NONE, null,
+                            null));
                         finish();
                     }
                 })
@@ -413,8 +416,7 @@ public class BoardActivity extends AppCompatActivity implements View.OnClickList
                 handleOpponentTurn(gameData);
                 break;
             case NONE:
-                mImageViewPlayer2.setImageResource(R.drawable.img_o);
-                mTextViewWinLose2.setText(gameData.getWinLose());
+                handleGameStateNone(gameData);
                 break;
             case YOUR_TURN:
                 if (mBoardView.isPlayerX())
@@ -426,16 +428,41 @@ public class BoardActivity extends AppCompatActivity implements View.OnClickList
         }
     }
 
+    private void handleGameStateNone(GameData gameData) {
+        switch (gameData.getGameState()) {
+            case NONE:
+                ToastUtils.showToast(this, R.string.opponent_end_game);
+                finish();
+                break;
+            case SURRENDER:
+                ToastUtils.showToast(this, R.string.opponent_surrender);
+                mEditor.putInt(WIN, mSharedPreferences.getInt(WIN, WIN_LOSE_DEFAULT) +
+                    INCREASE_DEFAULT);
+                mEditor.apply();
+                finish();
+                break;
+            case UPDATE_INFO:
+                mImageViewPlayer2.setImageResource(R.drawable.img_o);
+                mTextViewWinLose2.setText(gameData.getWinLose());
+                break;
+        }
+    }
+
     private void handleOpponentTurn(GameData gameData) {
-        mButtonPlay.setVisibility(View.INVISIBLE);
-        mImageViewPlayer2.setImageResource(R.drawable.img_o);
         mTextViewWinLose1.setText(gameData.getWinLose());
-        String winLose =
-            String.format(Locale.getDefault(), getString(R.string.win_lose_format),
-                mSharedPreferences.getInt(WIN, WIN_LOSE_DEFAULT),
-                mSharedPreferences.getInt(LOSE, WIN_LOSE_DEFAULT));
+        String winLose = String.format(Locale.getDefault(), getString(R.string.win_lose_format),
+            mSharedPreferences.getInt(WIN, WIN_LOSE_DEFAULT),
+            mSharedPreferences.getInt(LOSE, WIN_LOSE_DEFAULT));
         mTextViewWinLose2.setText(winLose);
-        sendGameData(new GameData(null, null, TurnGame.NONE, null, winLose));
+        if (gameData.getGameState() == GameState.RESTART_GAME) {
+            mBoardView.hideDialogRestartGame();
+            ToastUtils.showToast(this, R.string.start_new_game);
+            sendGameData(new GameData(null, GameState.RESTART_GAME, TurnGame.NONE, null, winLose));
+        } else {
+            mButtonPlay.setVisibility(View.INVISIBLE);
+            mImageViewPlayer2.setImageResource(R.drawable.img_o);
+            sendGameData(new GameData(null, GameState.UPDATE_INFO, TurnGame.NONE, null, winLose));
+        }
     }
 
     @Override

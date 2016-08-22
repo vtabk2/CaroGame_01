@@ -53,4 +53,8 @@
     <string name="opponent_turn">Opponent turn</string>
     <string name="your_turn">Your turn</string>
     <string name="win_lose_format">W/L: %1$d/%2$d</string>
+    <string name="request_play_new_game">Do you want to play a new game?</string>
+    <string name="opponent_end_game">Your opponent choose end game</string>
+    <string name="opponent_surrender">Your opponent surrender, You win!</string>
+    <string name="start_new_game">Start new game</string>
 </resources>

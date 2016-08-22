@@ -26,7 +26,11 @@ public interface Constants {
     int MARGIN = 8;
     int PADDING = 12;
     int CELL_SIZE = 80;
-    int COL = 500;
-    int ROW = 500;
+    int COL = 50;
+    int ROW = 50;
     int DEFAULT_INTENT_VALUE = -1;
+    int DEFAULT_MIN_ROW_COL = 100;
+    int DEFAULT_MAX_ROW_COL = -100;
+    int WIN_COUNT = 5;
+    int DEFAULT_COUNT = 0;
 }

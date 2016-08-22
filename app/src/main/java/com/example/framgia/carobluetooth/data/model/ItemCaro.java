@@ -12,8 +12,7 @@ public class ItemCaro implements Serializable{
     private int mPosY;
     private BoardCellState mBoardCellState;
 
-    public ItemCaro(int posX, int posY,
-                    BoardCellState boardCellState) {
+    public ItemCaro(int posX, int posY, BoardCellState boardCellState) {
         mPosX = posX;
         mPosY = posY;
         mBoardCellState = boardCellState;

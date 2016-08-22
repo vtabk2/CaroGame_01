@@ -45,4 +45,6 @@
     <string name="low_battery_title">Low Battery!</string>
     <string name="permission_to_share_image">This permission is required to share image</string>
     <string name="no_app_can_share_image">Your device has no app to share image</string>
+    <string name="message_win_game_play">You win !</string>
+    <string name="message_lose_game_play">You lose!</string>
 </resources>

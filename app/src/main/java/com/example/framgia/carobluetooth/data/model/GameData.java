@@ -1,7 +1,5 @@
 package com.example.framgia.carobluetooth.data.model;
 
-import android.os.Parcelable;
-
 import com.example.framgia.carobluetooth.data.enums.GameState;
 import com.example.framgia.carobluetooth.data.enums.Navigation;
 import com.example.framgia.carobluetooth.data.enums.TurnGame;
@@ -13,23 +11,23 @@ import java.io.Serializable;
  */
 public class GameData implements Serializable {
     private ItemCaro mItemCaro;
-    private GameState mGamestate;
+    private GameState mGameState;
     private TurnGame mTurnGame;
     private Navigation mNavigation;
 
     public GameData() {
     }
 
-    public GameData(ItemCaro itemCaro, GameState gamestate, TurnGame turnGame,
+    public GameData(ItemCaro itemCaro, GameState gameState, TurnGame turnGame,
                     Navigation navigation) {
         mItemCaro = itemCaro;
-        mGamestate = gamestate;
+        mGameState = gameState;
         mTurnGame = turnGame;
         mNavigation = navigation;
     }
 
-    public GameState getGamestate() {
-        return mGamestate;
+    public GameState getGameState() {
+        return mGameState;
     }
 
     public ItemCaro getItemCaro() {
@@ -40,11 +38,15 @@ public class GameData implements Serializable {
         return mTurnGame;
     }
 
-    public void updateGameData(ItemCaro itemCaro, GameState gamestate, TurnGame turnGame,
+    public void updateGameData(ItemCaro itemCaro, GameState gameState, TurnGame turnGame,
                                Navigation navigation) {
         mItemCaro = itemCaro;
-        mGamestate = gamestate;
+        mGameState = gameState;
         mTurnGame = turnGame;
         mNavigation = navigation;
+    }
+
+    public void setTurnGame(TurnGame turnGame) {
+        mTurnGame = turnGame;
     }
 }

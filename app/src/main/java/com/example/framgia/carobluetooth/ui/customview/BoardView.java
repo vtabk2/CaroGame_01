@@ -2,6 +2,7 @@ package com.example.framgia.carobluetooth.ui.customview;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -24,6 +25,8 @@ import com.example.framgia.carobluetooth.data.model.ItemCaro;
 import com.example.framgia.carobluetooth.ui.listener.OnGetBoardInfo;
 import com.example.framgia.carobluetooth.utility.ToastUtils;
 
+import java.util.Locale;
+
 public class BoardView extends View implements Constants {
     private Paint mLinePaint, mBmpPaint;
     private Bitmap mBitmapBackground, mBitmapPlayerX, mBitmapPlayerO;
@@ -36,6 +39,9 @@ public class BoardView extends View implements Constants {
     private int mMinCol, mMinRow, mMaxCol, mMaxRow;
     private OnGetBoardInfo mOnGetBoardInfo;
     private GameState mGameState;
+    private SharedPreferences mSharedPreferences;
+    private SharedPreferences.Editor mEditor;
+    private AlertDialog mDialogRestartGame;
 
     public BoardView(Context context) {
         super(context);
@@ -51,6 +57,9 @@ public class BoardView extends View implements Constants {
         mGameData = new GameData();
         mTurnGame = TurnGame.YOUR_TURN;
         mOnGetBoardInfo = (OnGetBoardInfo) getContext();
+        mSharedPreferences = getContext().getSharedPreferences(SHARED_PREFERENCES,
+            getContext().MODE_PRIVATE);
+        mEditor = mSharedPreferences.edit();
     }
 
     private void initBoard() {
@@ -179,30 +188,61 @@ public class BoardView extends View implements Constants {
     }
 
     private void showEndGame() {
-        String message = null;
-        if (mIsPlayerX && mGameState == GameState.PLAYER_X_WIN)
-            message = getContext().getString(R.string.message_win_game_play);
-        else if (mIsPlayerX && mGameState == GameState.PLAYER_X_LOSE)
-            message = getContext().getString(R.string.message_lose_game_play);
-        else if (!mIsPlayerX && mGameState == GameState.PLAYER_X_WIN)
-            message = getContext().getString(R.string.message_lose_game_play);
-        else if (!mIsPlayerX && mGameState == GameState.PLAYER_X_LOSE)
-            message = getContext().getString(R.string.message_win_game_play);
-        new AlertDialog.Builder(getContext())
-            .setMessage(message)
+        String title = null;
+        if (mIsPlayerX && mGameState == GameState.PLAYER_X_WIN) {
+            title = getContext().getString(R.string.message_win_game_play);
+            mEditor.putInt(WIN, mSharedPreferences.getInt(WIN, WIN_LOSE_DEFAULT) +
+                INCREASE_DEFAULT);
+        } else if (mIsPlayerX && mGameState == GameState.PLAYER_X_LOSE) {
+            title = getContext().getString(R.string.message_lose_game_play);
+            mEditor.putInt(LOSE, mSharedPreferences.getInt(LOSE, WIN_LOSE_DEFAULT) +
+                INCREASE_DEFAULT);
+        } else if (!mIsPlayerX && mGameState == GameState.PLAYER_X_WIN) {
+            title = getContext().getString(R.string.message_lose_game_play);
+            mEditor.putInt(WIN, mSharedPreferences.getInt(WIN, WIN_LOSE_DEFAULT) +
+                INCREASE_DEFAULT);
+        } else if (!mIsPlayerX && mGameState == GameState.PLAYER_X_LOSE) {
+            title = getContext().getString(R.string.message_win_game_play);
+            mEditor.putInt(LOSE, mSharedPreferences.getInt(LOSE, WIN_LOSE_DEFAULT) +
+                INCREASE_DEFAULT);
+        }
+        mDialogRestartGame = new AlertDialog.Builder(getContext())
+            .setTitle(title)
+            .setMessage(R.string.request_play_new_game)
             .setPositiveButton(android.R.string.yes,
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
-                        // TODO: 19/08/2016
+                        ToastUtils.showToast(getContext(), R.string.start_new_game);
+                        resetBoard();
+                        invalidate();
+                        handlePlayNewGame();
                     }
                 })
             .setNegativeButton(android.R.string.no,
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
+                        mOnGetBoardInfo.sendGameData(new GameData(null, GameState.NONE,
+                            TurnGame.NONE, null, null));
                         mOnGetBoardInfo.onFinishGame();
                     }
-                })
-            .show().setCanceledOnTouchOutside(false);
+                }).show();
+        mDialogRestartGame.setCanceledOnTouchOutside(false);
+    }
+
+    public void hideDialogRestartGame() {
+        if (mDialogRestartGame != null && mDialogRestartGame.isShowing())
+            mDialogRestartGame.dismiss();
+    }
+
+    private void handlePlayNewGame() {
+        if (mOnGetBoardInfo.getConnectionState() == STATE_CONNECTED) {
+            mGameState = GameState.PLAYING;
+            String winLose = String.format(Locale.getDefault(), getContext().getString(R.string
+                    .win_lose_format), mSharedPreferences.getInt(WIN, WIN_LOSE_DEFAULT),
+                mSharedPreferences.getInt(LOSE, WIN_LOSE_DEFAULT));
+            mOnGetBoardInfo.sendGameData(new GameData(null, GameState.RESTART_GAME,
+                TurnGame.OPPONENT_TURN, null, winLose));
+        } else ToastUtils.showToast(getContext(), R.string.not_connected_any_device);
     }
 
     private boolean isEndGame(BoardCellState boardCellState) {
@@ -324,7 +364,12 @@ public class BoardView extends View implements Constants {
     public void updateGameDataToBoardView(GameData gameData) {
         switch (gameData.getTurnGame()) {
             case OPPONENT_TURN:
-                mIsPlayerX = !mIsPlayerX;
+                if (gameData.getGameState() != GameState.RESTART_GAME)
+                    mIsPlayerX = !mIsPlayerX;
+                else {
+                    resetBoard();
+                    invalidate();
+                }
                 mGameState = GameState.PLAYING;
                 break;
             case YOUR_TURN:

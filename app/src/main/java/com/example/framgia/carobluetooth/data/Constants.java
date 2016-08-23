@@ -14,9 +14,11 @@ public interface Constants {
     int MESSAGE_STATE_CHANGE = 1;
     int MESSAGE_READ = 2;
     int MESSAGE_WRITE = 3;
-    int MESSAGE_DEVICE_NAME = 4;
+    int MESSAGE_DEVICE_CONNECTED = 4;
     int MESSAGE_TOAST = 5;
+    int MESSAGE_DISCONNECT = 6;
     String DEVICE_NAME = "device_name";
+    String DEVICE_ADDRESS = "device_address";
     String TOAST = "toast";
     String SHARED_PREFERENCES = "caro game bluetooth";
     String WIN = "win";
@@ -44,4 +46,6 @@ public interface Constants {
     int[] BONUS = {150, 30};
     int NUMBER_BONUS = 2;
     int OUT_OF_DISTANCE = 2;
+    int SEQUENCE_DELAY_TIME = 50;
+    int DEFAULT_LAST_MOVE = -1;
 }

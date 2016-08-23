@@ -76,6 +76,17 @@
             android:layout_centerVertical="true"
             android:text="@string/btn_play"/>
 
+        <TextView
+            android:id="@+id/text_view_player_turn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:text="@string/your_turn"
+            android:textColor="@android:color/black"
+            android:textSize="@dimen/text_size_medium"
+            android:visibility="invisible"/>
+
         <include
             android:id="@+id/layout_profile_player_right"
             layout="@layout/layout_player_item"

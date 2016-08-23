@@ -100,9 +100,10 @@ public class BluetoothConnectionService {
         }
         mConnectedThread = new ConnectedThread(socket);
         mConnectedThread.start();
-        Message message = mHandler.obtainMessage(Constants.MESSAGE_DEVICE_NAME);
+        Message message = mHandler.obtainMessage(Constants.MESSAGE_DEVICE_CONNECTED);
         Bundle bundle = new Bundle();
         bundle.putString(Constants.DEVICE_NAME, device.getName());
+        bundle.putString(Constants.DEVICE_ADDRESS, device.getAddress());
         message.setData(bundle);
         mHandler.sendMessage(message);
         setState(Constants.STATE_CONNECTED);
@@ -263,9 +264,11 @@ public class BluetoothConnectionService {
             byte[] buffer = new byte[BYTE_ARRAY_SIZE];
             while (true) {
                 try {
-                    mHandler.obtainMessage(Constants.MESSAGE_READ, mInputStream.read(buffer), -1, buffer)
-                        .sendToTarget();
+                    mHandler.obtainMessage(Constants.MESSAGE_READ, mInputStream.read(buffer), -1,
+                        buffer).sendToTarget();
                 } catch (IOException e) {
+                    mHandler.obtainMessage(Constants.MESSAGE_DISCONNECT, -1, -1, buffer)
+                        .sendToTarget();
                     connectionError(R.string.device_connection_was_lost);
                     break;
                 }

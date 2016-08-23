@@ -58,4 +58,26 @@
     <string name="opponent_surrender">Your opponent surrender, You win!</string>
     <string name="start_new_game">Start new game</string>
     <string name="computer_easy">Easy: </string>
+    <string name="turn_on_bluetooth_to_reconnect">You are connecting to other device, turn
+        on bluetooth to reconnect</string>
+    <string name="lost_connection">Lost connection</string>
+    <string name="message_lost_connection">Bluetooth connection was lost, click retry to
+        reconnect or close to back home</string>
+    <string name="retry">Retry</string>
+    <string name="got_it">GOT IT</string>
+    <string name="tutorial_button_exit">This is button EXIT, click here to back home screen</string>
+    <string name="tutorial_button_search">This is button SEARCH DEVICE, click here to search and
+        connect to other device via bluetooth</string>
+    <string name="tutorial_button_visibility">This is button SHOW VISIBILITY, click here to make
+        your device visibly so other device can find you</string>
+    <string name="tutorial_player_info">This is PLAYER INFORMATION, includes player color and
+        number win, lose </string>
+    <string name="tutorial_button_play">This is button PLAY, when you have connected to other device,
+        click here to start game</string>
+    <string name="tutorial_device_info">This is YOUR DEVICE INFORMATION, you should use this
+        information to connect to exact device you want</string>
+    <string name="tutorial_button_scan_devices">This is button SCAN DEVICES, click here to search
+        all available devices near you</string>
+    <string name="you">You</string>
+    <string name="opponent">Opponent</string>
 </resources>

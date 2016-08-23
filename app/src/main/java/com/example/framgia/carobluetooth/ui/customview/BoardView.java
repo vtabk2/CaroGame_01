@@ -9,10 +9,11 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Paint.Style;
+import android.graphics.Point;
 import android.graphics.Rect;
 import android.support.v7.app.AlertDialog;
 import android.view.MotionEvent;
-import android.widget.ScrollView;
+import android.view.View;
 
 import com.example.framgia.carobluetooth.R;
 import com.example.framgia.carobluetooth.data.Constants;
@@ -28,9 +29,10 @@ import com.example.framgia.carobluetooth.utility.ToastUtils;
 
 import java.util.Locale;
 
-public class BoardView extends ScrollView implements Constants {
-    protected Paint mLinePaint, mBmpPaint;
-    protected Bitmap mBitmapBackground, mBitmapPlayerX, mBitmapPlayerO;
+public class BoardView extends View implements Constants {
+    private Paint mLinePaint, mBmpPaint;
+    private Bitmap mBitmapBackground, mBitmapPlayerX, mBitmapPlayerO, mBitmapPlayerXYellow,
+        mBitmapPlayerOYellow;
     protected Rect mRectTable = new Rect();
     protected Rect mRectCell = new Rect();
     private boolean mIsPlayerX = true;
@@ -43,6 +45,7 @@ public class BoardView extends ScrollView implements Constants {
     protected SharedPreferences.Editor mEditor;
     private AlertDialog mDialogRestartGame;
     protected GameState mGameState;
+    private Point mPointLastMove;
     protected int mCellSize;
 
     public BoardView(Context context) {
@@ -50,6 +53,8 @@ public class BoardView extends ScrollView implements Constants {
         mBitmapBackground = getResBitmap(R.drawable.img_white);
         mBitmapPlayerX = getResBitmap(R.drawable.img_x);
         mBitmapPlayerO = getResBitmap(R.drawable.img_o);
+        mBitmapPlayerXYellow = getResBitmap(R.drawable.img_x_background_yellow);
+        mBitmapPlayerOYellow = getResBitmap(R.drawable.img_o_background_yellow);
         mBmpPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         mLinePaint = new Paint();
         mLinePaint.setColor(Color.BLACK);
@@ -62,6 +67,7 @@ public class BoardView extends ScrollView implements Constants {
         mSharedPreferences = getContext().getSharedPreferences(SHARED_PREFERENCES,
             getContext().MODE_PRIVATE);
         mEditor = mSharedPreferences.edit();
+        mPointLastMove = new Point(DEFAULT_LAST_MOVE, DEFAULT_LAST_MOVE);
     }
 
     protected void initBoard() {
@@ -107,13 +113,17 @@ public class BoardView extends ScrollView implements Constants {
                     case HUMAN:
                         mRectCell
                             .offsetTo(col * mCellSize + PADDING, row * mCellSize + PADDING);
-                        canvas.drawBitmap(mBitmapPlayerX, null, mRectCell, mBmpPaint);
+                        canvas.drawBitmap(mPointLastMove.x == row && mPointLastMove.y == col
+                                ? mBitmapPlayerXYellow : mBitmapPlayerX, null, mRectCell,
+                            mBmpPaint);
                         break;
                     case PLAYER_O:
                     case MACHINE:
                         mRectCell
                             .offsetTo(col * mCellSize + PADDING, row * mCellSize + PADDING);
-                        canvas.drawBitmap(mBitmapPlayerO, null, mRectCell, mBmpPaint);
+                        canvas.drawBitmap(mPointLastMove.x == row && mPointLastMove.y == col
+                                ? mBitmapPlayerOYellow : mBitmapPlayerO, null, mRectCell,
+                            mBmpPaint);
                         break;
                 }
             }
@@ -179,6 +189,7 @@ public class BoardView extends ScrollView implements Constants {
                             GameState.NONE, mTurnGame, Navigation.NONE);
                         mOnGetBoardInfo.sendGameData(mGameData);
                         mTurnGame = TurnGame.OPPONENT_TURN;
+                        mOnGetBoardInfo.setPlayerTurnState(R.string.opponent_turn);
                         if (isPlayerX()) mOnGetBoardInfo.setPlayerBackground(
                             R.drawable.surround_item_player,
                             R.drawable.surround_item_player_selected);
@@ -204,13 +215,14 @@ public class BoardView extends ScrollView implements Constants {
                 INCREASE_DEFAULT);
         } else if (!mIsPlayerX && mGameState == GameState.PLAYER_X_WIN) {
             title = getContext().getString(R.string.message_lose_game_play);
-            mEditor.putInt(WIN, mSharedPreferences.getInt(WIN, WIN_LOSE_DEFAULT) +
+            mEditor.putInt(LOSE, mSharedPreferences.getInt(LOSE, WIN_LOSE_DEFAULT) +
                 INCREASE_DEFAULT);
         } else if (!mIsPlayerX && mGameState == GameState.PLAYER_X_LOSE) {
             title = getContext().getString(R.string.message_win_game_play);
-            mEditor.putInt(LOSE, mSharedPreferences.getInt(LOSE, WIN_LOSE_DEFAULT) +
+            mEditor.putInt(WIN, mSharedPreferences.getInt(WIN, WIN_LOSE_DEFAULT) +
                 INCREASE_DEFAULT);
         }
+        mEditor.apply();
         mDialogRestartGame = new AlertDialog.Builder(getContext())
             .setTitle(title)
             .setMessage(R.string.request_play_new_game)
@@ -245,6 +257,7 @@ public class BoardView extends ScrollView implements Constants {
             String winLose = String.format(Locale.getDefault(), getContext().getString(R.string
                     .win_lose_format), mSharedPreferences.getInt(WIN, WIN_LOSE_DEFAULT),
                 mSharedPreferences.getInt(LOSE, WIN_LOSE_DEFAULT));
+            mOnGetBoardInfo.updateWinLose(winLose);
             mOnGetBoardInfo.sendGameData(new GameData(null, GameState.RESTART_GAME,
                 TurnGame.OPPONENT_TURN, null, winLose));
         } else ToastUtils.showToast(getContext(), R.string.not_connected_any_device);
@@ -390,22 +403,29 @@ public class BoardView extends ScrollView implements Constants {
             case YOUR_TURN:
                 handleYourTurn(gameData);
                 break;
+            case NONE:
+                if (gameData.getGameState() == GameState.RESTART_GAME)
+                    mOnGetBoardInfo.updateOpponentWinLose(gameData.getWinLose());
+                break;
         }
     }
 
     private void handleYourTurn(GameData gameData) {
         ItemCaro itemCaro = gameData.getItemCaro();
-        int rowIndex = itemCaro.getPosX();
-        int colIndex = itemCaro.getPosY();
+        mPointLastMove.x = itemCaro.getPosX();
+        mPointLastMove.y = itemCaro.getPosY();
         ToastUtils.showToast(getContext(), R.string.your_turn);
+        mOnGetBoardInfo.setPlayerTurnState(R.string.your_turn);
         GameState gameState = gameData.getGameState();
         if (gameState != GameState.NONE) mGameState = gameState;
         switch (itemCaro.getBoardCellState()) {
             case PLAYER_X:
-                mItemCaros[rowIndex][colIndex].setBoardCellState(BoardCellState.PLAYER_X);
+                mItemCaros[mPointLastMove.x][mPointLastMove.y]
+                    .setBoardCellState(BoardCellState.PLAYER_X);
                 break;
             case PLAYER_O:
-                mItemCaros[rowIndex][colIndex].setBoardCellState(BoardCellState.PLAYER_O);
+                mItemCaros[mPointLastMove.x][mPointLastMove.y]
+                    .setBoardCellState(BoardCellState.PLAYER_O);
                 break;
         }
         if (mGameState == GameState.PLAYER_X_WIN || mGameState == GameState.PLAYER_X_LOSE)

@@ -13,7 +13,7 @@
     <dimen name="margin_small">5dp</dimen>
     <dimen name="avatar_size">60dp</dimen>
     <dimen name="image_player_size">35dp</dimen>
-    <dimen name="layout_player_item_width">100dp</dimen>
+    <dimen name="layout_player_item_width">110dp</dimen>
     <dimen name="button_board_height">48dp</dimen>
     <dimen name="button_board_width_land">48dp</dimen>
     <dimen name="stroke_with">1dp</dimen>

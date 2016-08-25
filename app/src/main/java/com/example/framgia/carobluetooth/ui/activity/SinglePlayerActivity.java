@@ -3,7 +3,10 @@ package com.example.framgia.carobluetooth.ui.activity;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.support.annotation.DrawableRes;
 import android.support.annotation.Nullable;
+import android.support.annotation.StringRes;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -25,42 +28,38 @@ import java.util.Locale;
 public class SinglePlayerActivity extends AppCompatActivity
     implements OnGetSingleBoardInfo, Constants, View.OnClickListener {
     private SharedPreferences mSharedPreferences;
-    private TextView mTextViewHumanWinLose, mTextViewMachineWinLose;
-    private TextView mTextViewMachineName;
-    private ImageView mImageViewMachine;
+    private TextView mTextViewHumanWinLose, mTextViewMachineWinLose, mTextViewPlayerTurn;
+    private LinearLayout mLinearLayoutHuman, mLinearLayoutMachine;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_board);
         initViews();
-        updateProfile();
-    }
-
-    private void updateProfile() {
-        mTextViewMachineName.setText(getString(R.string.computer_easy));
-        mImageViewMachine.setImageResource(R.drawable.img_o);
         updateWinLose();
     }
 
     private void initViews() {
-        findViewById(R.id.image_button_undo).setVisibility(View.INVISIBLE);
-        findViewById(R.id.image_button_exit).setVisibility(View.INVISIBLE);
         findViewById(R.id.image_button_search).setVisibility(View.INVISIBLE);
         findViewById(R.id.image_button_visibility).setVisibility(View.INVISIBLE);
         findViewById(R.id.button_play).setVisibility(View.INVISIBLE);
+        mTextViewPlayerTurn = (TextView) findViewById(R.id.text_view_player_turn);
+        mTextViewPlayerTurn.setVisibility(View.VISIBLE);
         findViewById(R.id.image_button_back).setOnClickListener(this);
-        LinearLayout linearLayoutMachine =
-            (LinearLayout) findViewById(R.id.layout_profile_player_right);
+        mLinearLayoutHuman = (LinearLayout) findViewById(R.id.layout_profile_player_left);
+        mLinearLayoutMachine = (LinearLayout) findViewById(R.id.layout_profile_player_right);
         mTextViewHumanWinLose = (TextView) findViewById(R.id.layout_profile_player_left)
             .findViewById(R.id.text_player_win_lose);
         mTextViewMachineWinLose =
-            (TextView) linearLayoutMachine.findViewById(R.id.text_player_win_lose);
-        mTextViewMachineName = (TextView) linearLayoutMachine.findViewById(R.id.text_player_name);
-        mImageViewMachine = (ImageView) linearLayoutMachine.findViewById(R.id.image_player);
-        SingleBoardView singleBoardView = new SingleBoardView(this);
+            (TextView) mLinearLayoutMachine.findViewById(R.id.text_player_win_lose);
+        ((ImageView) mLinearLayoutMachine.findViewById(R.id.image_player))
+            .setImageResource(R.drawable.img_o);
+        ((TextView) mLinearLayoutHuman.findViewById(R.id.text_player_name))
+            .setText(getString(R.string.you));
+        ((TextView) mLinearLayoutMachine.findViewById(R.id.text_player_name))
+            .setText(getString(R.string.computer_easy));
         ((HorizontalScrollView) findViewById(R.id.horizontal_scroll_board))
-            .addView(singleBoardView);
+            .addView(new SingleBoardView(this));
         mSharedPreferences = getSharedPreferences(SHARED_PREFERENCES, MODE_PRIVATE);
     }
 
@@ -71,16 +70,23 @@ public class SinglePlayerActivity extends AppCompatActivity
 
     @Override
     public void updateWinLose() {
-        String winLoseHuman = String.format(Locale.getDefault(), getString(R.string
-                .win_lose_format),
-            mSharedPreferences.getInt(WIN_HUMAN, WIN_LOSE_DEFAULT),
-            mSharedPreferences.getInt(LOSE_HUMAN, WIN_LOSE_DEFAULT));
-        String winLoseMachine = String.format(Locale.getDefault(), getString(R.string
-                .win_lose_format),
-            mSharedPreferences.getInt(LOSE_HUMAN, WIN_LOSE_DEFAULT),
-            mSharedPreferences.getInt(WIN_HUMAN, WIN_LOSE_DEFAULT));
-        mTextViewHumanWinLose.setText(winLoseHuman);
-        mTextViewMachineWinLose.setText(winLoseMachine);
+        mTextViewHumanWinLose.setText(String.format(Locale.getDefault(), getString(R.string
+                .win_lose_format), mSharedPreferences.getInt(WIN_HUMAN, WIN_LOSE_DEFAULT),
+            mSharedPreferences.getInt(LOSE_HUMAN, WIN_LOSE_DEFAULT)));
+        mTextViewMachineWinLose.setText(String.format(Locale.getDefault(), getString(R.string
+                .win_lose_format), mSharedPreferences.getInt(LOSE_HUMAN, WIN_LOSE_DEFAULT),
+            mSharedPreferences.getInt(WIN_HUMAN, WIN_LOSE_DEFAULT)));
+    }
+
+    @Override
+    public void setPlayerTurnState(@StringRes int turnState) {
+        mTextViewPlayerTurn.setText(turnState);
+    }
+
+    @Override
+    public void setPlayerBackground(@DrawableRes int drawableRes1, @DrawableRes int drawableRes2) {
+        mLinearLayoutHuman.setBackground(ContextCompat.getDrawable(this, drawableRes1));
+        mLinearLayoutMachine.setBackground(ContextCompat.getDrawable(this, drawableRes2));
     }
 
     @Override

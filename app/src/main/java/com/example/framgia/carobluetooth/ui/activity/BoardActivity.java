@@ -53,7 +53,7 @@ import uk.co.deanwild.materialshowcaseview.MaterialShowcaseSequence;
 import uk.co.deanwild.materialshowcaseview.ShowcaseConfig;
 
 public class BoardActivity extends AppCompatActivity implements View.OnClickListener, Constants,
-    OnGetBoardInfo {
+    OnGetBoardInfo, View.OnLongClickListener {
     private static final int REQUEST_CONNECT_DEVICE = 1;
     private static final int REQUEST_ENABLE_BLUETOOTH = 2;
     private static final int REQUEST_WRITE_EXTERNAL_STORAGE = 3;
@@ -69,12 +69,13 @@ public class BoardActivity extends AppCompatActivity implements View.OnClickList
     private SharedPreferences.Editor mEditor;
     private BoardView mBoardView;
     private Button mButtonPlay;
-    private ImageButton mImageButtonBackHome, mImageButtonSearch, mImageButtonShowVisibility;
+    private ImageButton mImageButtonBackHome, mImageButtonSearch, mImageButtonShowVisibility,
+        mImageButtonShare;
     private LinearLayout mLinearLayoutPlayerLeft, mLinearLayoutPlayerRight;
     private TextView mTextViewWinLoseLeft, mTextViewWinLoseRight, mTextViewPlayerTurn,
         mTextViewPlayerNameLeft, mTextViewPlayerNameRight;
     private ImageView mImageViewPlayerRight;
-    private String mAddress;
+    private String mAddress, mOpponentDevice;
     private boolean mIsSurrender, mIsEndGame;
 
     @Override
@@ -99,13 +100,12 @@ public class BoardActivity extends AppCompatActivity implements View.OnClickList
         mImageButtonBackHome = (ImageButton) findViewById(R.id.image_button_back);
         mImageButtonSearch = (ImageButton) findViewById(R.id.image_button_search);
         mImageButtonShowVisibility = (ImageButton) findViewById(R.id.image_button_visibility);
+        mImageButtonShare = (ImageButton) findViewById(R.id.image_button_share);
         mTextViewPlayerTurn = (TextView) findViewById(R.id.text_view_player_turn);
         mTextViewPlayerNameLeft =
             (TextView) mLinearLayoutPlayerLeft.findViewById(R.id.text_player_name);
         mTextViewPlayerNameRight =
             (TextView) mLinearLayoutPlayerRight.findViewById(R.id.text_player_name);
-        findViewById(R.id.image_button_undo).setVisibility(View.INVISIBLE);
-        findViewById(R.id.image_button_exit).setVisibility(View.INVISIBLE);
         showTutorial();
     }
 
@@ -115,6 +115,8 @@ public class BoardActivity extends AppCompatActivity implements View.OnClickList
         MaterialShowcaseSequence sequence = new MaterialShowcaseSequence(this, SHOWCASE_ID);
         sequence.setConfig(config);
         sequence.addSequenceItem(mImageButtonBackHome, getString(R.string.tutorial_button_exit),
+            getString(R.string.got_it));
+        sequence.addSequenceItem(mImageButtonShare, getString(R.string.tutorial_button_share),
             getString(R.string.got_it));
         sequence.addSequenceItem(mImageButtonSearch, getString(R.string.tutorial_button_search),
             getString(R.string.got_it));
@@ -144,6 +146,12 @@ public class BoardActivity extends AppCompatActivity implements View.OnClickList
         mImageButtonSearch.setOnClickListener(this);
         mImageButtonShowVisibility.setOnClickListener(this);
         mButtonPlay.setOnClickListener(this);
+        mImageButtonShare.setOnClickListener(this);
+        mImageButtonBackHome.setOnLongClickListener(this);
+        mImageButtonSearch.setOnLongClickListener(this);
+        mImageButtonShowVisibility.setOnLongClickListener(this);
+        mImageButtonShare.setOnLongClickListener(this);
+        mButtonPlay.setOnLongClickListener(this);
     }
 
     private void showVisibility() {
@@ -175,6 +183,9 @@ public class BoardActivity extends AppCompatActivity implements View.OnClickList
                 break;
             case R.id.button_play:
                 handlePlayButton();
+                break;
+            case R.id.image_button_share:
+                requestShareScreenShot();
                 break;
         }
     }
@@ -262,9 +273,10 @@ public class BoardActivity extends AppCompatActivity implements View.OnClickList
                     handleMessageRead(message);
                     break;
                 case MESSAGE_DEVICE_CONNECTED:
-                    ToastUtils.showToast(getApplicationContext(), String.format(getString(
-                        R.string.connect_to_device), message.getData().getString(DEVICE_NAME)));
+                    mOpponentDevice = message.getData().getString(DEVICE_NAME);
                     mAddress = message.getData().getString(DEVICE_ADDRESS);
+                    ToastUtils.showToast(getApplicationContext(), String.format(getString(
+                        R.string.connect_to_device), mOpponentDevice));
                     break;
                 case MESSAGE_TOAST:
                     ToastUtils
@@ -517,14 +529,14 @@ public class BoardActivity extends AppCompatActivity implements View.OnClickList
             case UPDATE_INFO:
                 mImageViewPlayerRight.setImageResource(R.drawable.img_o);
                 mTextViewWinLoseRight.setText(gameData.getWinLose());
-                mTextViewPlayerNameRight.setText(R.string.opponent);
+                mTextViewPlayerNameRight.setText(mOpponentDevice);
                 break;
         }
     }
 
     private void handleOpponentTurn(GameData gameData) {
         mTextViewWinLoseLeft.setText(gameData.getWinLose());
-        mTextViewPlayerNameLeft.setText(R.string.opponent);
+        mTextViewPlayerNameLeft.setText(mOpponentDevice);
         String winLose = String.format(Locale.getDefault(), getString(R.string.win_lose_format),
             mSharedPreferences.getInt(WIN, WIN_LOSE_DEFAULT),
             mSharedPreferences.getInt(LOSE, WIN_LOSE_DEFAULT));
@@ -575,5 +587,27 @@ public class BoardActivity extends AppCompatActivity implements View.OnClickList
     @Override
     public void setPlayerTurnState(@StringRes int turnState) {
         mTextViewPlayerTurn.setText(getString(turnState));
+    }
+
+    @Override
+    public boolean onLongClick(View view) {
+        switch (view.getId()) {
+            case R.id.image_button_back:
+                ToastUtils.showToast(this, R.string.back_home);
+                break;
+            case R.id.image_button_share:
+                ToastUtils.showToast(this, R.string.share_image);
+                break;
+            case R.id.image_button_search:
+                ToastUtils.showToast(this, R.string.search_device);
+                break;
+            case R.id.image_button_visibility:
+                ToastUtils.showToast(this, R.string.show_visibility);
+                break;
+            case R.id.button_play:
+                ToastUtils.showToast(this, R.string.start_new_game);
+                break;
+        }
+        return true;
     }
 }

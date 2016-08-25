@@ -19,6 +19,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -32,6 +33,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import uk.co.deanwild.materialshowcaseview.MaterialShowcaseSequence;
+import uk.co.deanwild.materialshowcaseview.ShowcaseConfig;
+
 /**
  * Created by framgia on 11/08/2016.
  */
@@ -41,12 +45,14 @@ public class DevicesListActivity extends AppCompatActivity implements View.OnCli
     private static final int PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION = 0;
     private static final String IS_SCANNING_CODE = "scanning";
     private static final String IS_SCANNED_CODE = "scanned";
+    private static final String SHOWCASE_ID = "devices_list_tutorial";
     private BluetoothAdapter mBluetoothAdapter;
     private List<BluetoothDevice> mPairedDevicesList, mAvailableDevicesList;
     private RecyclerView mRecyclerViewPairedDevices, mRecyclerViewAvailableDevices;
     private TextView mTextViewNoPairedDevices, mTextViewNoAvailableDevices;
     private BluetoothDeviceRecyclerViewAdapter mPairedDevicesAdapter, mAvailableDevicesAdapter;
     private ProgressBar mProgressBar;
+    private Button mButtonScanDevices, mButtonShowVisibility;
     private boolean mIsScanning, mIsScanned;
     private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
@@ -130,9 +136,26 @@ public class DevicesListActivity extends AppCompatActivity implements View.OnCli
             mTextViewNoAvailableDevices.setVisibility(View.VISIBLE);
             mRecyclerViewAvailableDevices.setVisibility(View.GONE);
         }
-        findViewById(R.id.button_scan_available_devices).setOnClickListener(this);
-        findViewById(R.id.button_show_visibility).setOnClickListener(this);
+        mButtonScanDevices = (Button) findViewById(R.id.button_scan_available_devices);
+        mButtonShowVisibility = (Button) findViewById(R.id.button_show_visibility);
+        mButtonScanDevices.setOnClickListener(this);
+        mButtonShowVisibility.setOnClickListener(this);
         mProgressBar = (ProgressBar) findViewById(R.id.progress_bar_loading);
+        showTutorial();
+    }
+
+    private void showTutorial() {
+        ShowcaseConfig config = new ShowcaseConfig();
+        config.setDelay(Constants.SEQUENCE_DELAY_TIME);
+        MaterialShowcaseSequence sequence = new MaterialShowcaseSequence(this, SHOWCASE_ID);
+        sequence.setConfig(config);
+        sequence.addSequenceItem(findViewById(R.id.text_view_your_device_address), getString(
+            R.string.tutorial_device_info), getString(R.string.got_it));
+        sequence.addSequenceItem(mButtonScanDevices, getString(
+            R.string.tutorial_button_scan_devices), getString(R.string.got_it));
+        sequence.addSequenceItem(mButtonShowVisibility, getString(
+            R.string.tutorial_button_visibility), getString(R.string.got_it));
+        sequence.start();
     }
 
     private void turnBluetoothOn() {

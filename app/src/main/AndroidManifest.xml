@@ -22,7 +22,9 @@
             </intent-filter>
         </activity>
         <activity android:name=".ui.activity.DevicesListActivity"/>
-        <activity android:name=".ui.activity.BoardActivity"/>
+        <activity
+            android:name=".ui.activity.BoardActivity"
+            android:screenOrientation="portrait"/>/>
         <activity android:name=".ui.activity.SinglePlayerActivity"/>
     </application>
 </manifest>

@@ -17,6 +17,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
+import android.support.annotation.StringRes;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
@@ -25,6 +26,7 @@ import android.text.format.DateFormat;
 import android.view.View;
 import android.widget.Button;
 import android.widget.HorizontalScrollView;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -47,6 +49,9 @@ import java.io.ObjectInputStream;
 import java.util.Date;
 import java.util.Locale;
 
+import uk.co.deanwild.materialshowcaseview.MaterialShowcaseSequence;
+import uk.co.deanwild.materialshowcaseview.ShowcaseConfig;
+
 public class BoardActivity extends AppCompatActivity implements View.OnClickListener, Constants,
     OnGetBoardInfo {
     private static final int REQUEST_CONNECT_DEVICE = 1;
@@ -57,15 +62,20 @@ public class BoardActivity extends AppCompatActivity implements View.OnClickList
     private static final String SHARE_IMAGE_TYPE = "image/";
     private static final int IMAGE_QUALITY = 100;
     private static final int BATTERY_LOW = 15;
+    private static final String SHOWCASE_ID = "multi_player_tutorial";
     private BluetoothAdapter mBluetoothAdapter;
     private BluetoothConnectionService mBluetoothConnectionService;
     private SharedPreferences mSharedPreferences;
     private SharedPreferences.Editor mEditor;
     private BoardView mBoardView;
     private Button mButtonPlay;
+    private ImageButton mImageButtonBackHome, mImageButtonSearch, mImageButtonShowVisibility;
     private LinearLayout mLinearLayoutPlayerLeft, mLinearLayoutPlayerRight;
-    private TextView mTextViewWinLoseLeft, mTextViewWinLoseRight;
+    private TextView mTextViewWinLoseLeft, mTextViewWinLoseRight, mTextViewPlayerTurn,
+        mTextViewPlayerNameLeft, mTextViewPlayerNameRight;
     private ImageView mImageViewPlayerRight;
+    private String mAddress;
+    private boolean mIsSurrender, mIsEndGame;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,6 +96,35 @@ public class BoardActivity extends AppCompatActivity implements View.OnClickList
             (TextView) mLinearLayoutPlayerLeft.findViewById(R.id.text_player_win_lose);
         mTextViewWinLoseRight =
             (TextView) mLinearLayoutPlayerRight.findViewById(R.id.text_player_win_lose);
+        mImageButtonBackHome = (ImageButton) findViewById(R.id.image_button_back);
+        mImageButtonSearch = (ImageButton) findViewById(R.id.image_button_search);
+        mImageButtonShowVisibility = (ImageButton) findViewById(R.id.image_button_visibility);
+        mTextViewPlayerTurn = (TextView) findViewById(R.id.text_view_player_turn);
+        mTextViewPlayerNameLeft =
+            (TextView) mLinearLayoutPlayerLeft.findViewById(R.id.text_player_name);
+        mTextViewPlayerNameRight =
+            (TextView) mLinearLayoutPlayerRight.findViewById(R.id.text_player_name);
+        findViewById(R.id.image_button_undo).setVisibility(View.INVISIBLE);
+        findViewById(R.id.image_button_exit).setVisibility(View.INVISIBLE);
+        showTutorial();
+    }
+
+    private void showTutorial() {
+        ShowcaseConfig config = new ShowcaseConfig();
+        config.setDelay(SEQUENCE_DELAY_TIME);
+        MaterialShowcaseSequence sequence = new MaterialShowcaseSequence(this, SHOWCASE_ID);
+        sequence.setConfig(config);
+        sequence.addSequenceItem(mImageButtonBackHome, getString(R.string.tutorial_button_exit),
+            getString(R.string.got_it));
+        sequence.addSequenceItem(mImageButtonSearch, getString(R.string.tutorial_button_search),
+            getString(R.string.got_it));
+        sequence.addSequenceItem(mImageButtonShowVisibility,
+            getString(R.string.tutorial_button_visibility), getString(R.string.got_it));
+        sequence.addSequenceItem(mLinearLayoutPlayerLeft, getString(R.string.tutorial_player_info),
+            getString(R.string.got_it));
+        sequence.addSequenceItem(mButtonPlay, getString(R.string.tutorial_button_play), getString
+            (R.string.got_it));
+        sequence.start();
     }
 
     private void initBluetooth() {
@@ -101,11 +140,9 @@ public class BoardActivity extends AppCompatActivity implements View.OnClickList
     }
 
     private void initOnListener() {
-        findViewById(R.id.image_button_back).setOnClickListener(this);
-        findViewById(R.id.image_button_undo).setOnClickListener(this);
-        findViewById(R.id.image_button_exit).setOnClickListener(this);
-        findViewById(R.id.image_button_search).setOnClickListener(this);
-        findViewById(R.id.image_button_visibility).setOnClickListener(this);
+        mImageButtonBackHome.setOnClickListener(this);
+        mImageButtonSearch.setOnClickListener(this);
+        mImageButtonShowVisibility.setOnClickListener(this);
         mButtonPlay.setOnClickListener(this);
     }
 
@@ -151,10 +188,12 @@ public class BoardActivity extends AppCompatActivity implements View.OnClickList
         if (mBluetoothConnectionService.getState() == STATE_CONNECTED) {
             mBoardView.setGameState(GameState.PLAYING);
             mButtonPlay.setVisibility(View.INVISIBLE);
+            mTextViewPlayerTurn.setVisibility(View.VISIBLE);
             String winLose = String.format(Locale.getDefault(), getString(R.string.win_lose_format),
                 mSharedPreferences.getInt(WIN, WIN_LOSE_DEFAULT),
                 mSharedPreferences.getInt(LOSE, WIN_LOSE_DEFAULT));
             mTextViewWinLoseLeft.setText(winLose);
+            mTextViewPlayerNameLeft.setText(R.string.you);
             sendGameData(
                 new GameData(null, GameState.UPDATE_INFO, TurnGame.OPPONENT_TURN, null, winLose));
         }
@@ -222,14 +261,17 @@ public class BoardActivity extends AppCompatActivity implements View.OnClickList
                 case MESSAGE_READ:
                     handleMessageRead(message);
                     break;
-                case MESSAGE_DEVICE_NAME:
-                    ToastUtils.showToast(getApplicationContext(),
-                        String.format(getString(R.string.connect_to_device),
-                            message.getData().getString(DEVICE_NAME)));
+                case MESSAGE_DEVICE_CONNECTED:
+                    ToastUtils.showToast(getApplicationContext(), String.format(getString(
+                        R.string.connect_to_device), message.getData().getString(DEVICE_NAME)));
+                    mAddress = message.getData().getString(DEVICE_ADDRESS);
                     break;
                 case MESSAGE_TOAST:
                     ToastUtils
                         .showToast(getApplicationContext(), message.getData().getString(TOAST));
+                    break;
+                case MESSAGE_DISCONNECT:
+                    handleConnectionLost();
                     break;
             }
         }
@@ -251,13 +293,40 @@ public class BoardActivity extends AppCompatActivity implements View.OnClickList
         }
     }
 
+    private void handleConnectionLost() {
+        if (!mBluetoothAdapter.isEnabled()) {
+            ToastUtils.showToast(this, R.string.turn_on_bluetooth_to_reconnect);
+            startActivityForResult(new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE),
+                REQUEST_ENABLE_BLUETOOTH);
+        } else if (!mIsSurrender && !mIsEndGame) new AlertDialog.Builder(this)
+            .setTitle(R.string.lost_connection)
+            .setMessage(R.string.message_lost_connection)
+            .setPositiveButton(R.string.retry,
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        if (mBluetoothConnectionService != null)
+                            mBluetoothConnectionService.stop();
+                        mBluetoothConnectionService
+                            .connect(mBluetoothAdapter.getRemoteDevice(mAddress));
+                    }
+                })
+            .setNegativeButton(R.string.close,
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        finish();
+                    }
+                }).show().setCanceledOnTouchOutside(false);
+    }
+
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
             case REQUEST_CONNECT_DEVICE:
-                if (resultCode == Activity.RESULT_OK)
-                    mBluetoothConnectionService.connect(mBluetoothAdapter.getRemoteDevice
-                        (data.getExtras().getString(INTENT_DEVICE_ADDRESS)));
+                if (resultCode == Activity.RESULT_OK) {
+                    mAddress = data.getExtras().getString(INTENT_DEVICE_ADDRESS);
+                    mBluetoothConnectionService
+                        .connect(mBluetoothAdapter.getRemoteDevice(mAddress));
+                }
                 break;
             case REQUEST_ENABLE_BLUETOOTH:
                 if (resultCode == Activity.RESULT_OK) {
@@ -278,6 +347,7 @@ public class BoardActivity extends AppCompatActivity implements View.OnClickList
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
                         surrender();
+                        mIsSurrender = true;
                         sendGameData(new GameData(null, GameState.SURRENDER, TurnGame.NONE, null,
                             null));
                         finish();
@@ -433,10 +503,12 @@ public class BoardActivity extends AppCompatActivity implements View.OnClickList
         switch (gameData.getGameState()) {
             case NONE:
                 ToastUtils.showToast(this, R.string.opponent_end_game);
+                mIsEndGame = true;
                 finish();
                 break;
             case SURRENDER:
                 ToastUtils.showToast(this, R.string.opponent_surrender);
+                mIsSurrender = true;
                 mEditor.putInt(WIN, mSharedPreferences.getInt(WIN, WIN_LOSE_DEFAULT) +
                     INCREASE_DEFAULT);
                 mEditor.apply();
@@ -445,22 +517,28 @@ public class BoardActivity extends AppCompatActivity implements View.OnClickList
             case UPDATE_INFO:
                 mImageViewPlayerRight.setImageResource(R.drawable.img_o);
                 mTextViewWinLoseRight.setText(gameData.getWinLose());
+                mTextViewPlayerNameRight.setText(R.string.opponent);
                 break;
         }
     }
 
     private void handleOpponentTurn(GameData gameData) {
         mTextViewWinLoseLeft.setText(gameData.getWinLose());
+        mTextViewPlayerNameLeft.setText(R.string.opponent);
         String winLose = String.format(Locale.getDefault(), getString(R.string.win_lose_format),
             mSharedPreferences.getInt(WIN, WIN_LOSE_DEFAULT),
             mSharedPreferences.getInt(LOSE, WIN_LOSE_DEFAULT));
         mTextViewWinLoseRight.setText(winLose);
+        mTextViewPlayerNameRight.setText(R.string.you);
         if (gameData.getGameState() == GameState.RESTART_GAME) {
             mBoardView.hideDialogRestartGame();
+            updateWinLose(winLose);
+            updateOpponentWinLose(gameData.getWinLose());
             ToastUtils.showToast(this, R.string.start_new_game);
             sendGameData(new GameData(null, GameState.RESTART_GAME, TurnGame.NONE, null, winLose));
         } else {
             mButtonPlay.setVisibility(View.INVISIBLE);
+            mTextViewPlayerTurn.setVisibility(View.VISIBLE);
             mImageViewPlayerRight.setImageResource(R.drawable.img_o);
             sendGameData(new GameData(null, GameState.UPDATE_INFO, TurnGame.NONE, null, winLose));
         }
@@ -480,5 +558,22 @@ public class BoardActivity extends AppCompatActivity implements View.OnClickList
     @Override
     public void onFinishGame() {
         finish();
+    }
+
+    @Override
+    public void updateWinLose(String winLose) {
+        if (mBoardView.isPlayerX()) mTextViewWinLoseLeft.setText(winLose);
+        else mTextViewWinLoseRight.setText(winLose);
+    }
+
+    @Override
+    public void updateOpponentWinLose(String winLose) {
+        if (!mBoardView.isPlayerX()) mTextViewWinLoseLeft.setText(winLose);
+        else mTextViewWinLoseRight.setText(winLose);
+    }
+
+    @Override
+    public void setPlayerTurnState(@StringRes int turnState) {
+        mTextViewPlayerTurn.setText(getString(turnState));
     }
 }

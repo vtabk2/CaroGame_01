@@ -20,4 +20,7 @@
     <dimen name="corners_radius">10dp</dimen>
     <dimen name="relative_layout_player_item_height">80dp</dimen>
     <dimen name="relative_layout_player_item_width_land">115dp</dimen>
+    <dimen name="text_size_settings">30sp</dimen>
+    <dimen name="margin_medium">10dp</dimen>
+    <dimen name="item_checkbox_settings_text_size">18sp</dimen>
 </resources>

@@ -21,11 +21,13 @@ public interface Constants {
     String SHARED_PREFERENCES = "caro game bluetooth";
     String WIN = "win";
     String LOSE = "lose";
+    String WIN_HUMAN = "win human";
+    String LOSE_HUMAN = "lose man";
     int WIN_LOSE_DEFAULT = 0;
     int INCREASE_DEFAULT = 1;
     int MARGIN = 8;
     int PADDING = 12;
-    int CELL_SIZE = 80;
+    int CELL_SIZE_DP = 35;
     int COL = 50;
     int ROW = 50;
     int DEFAULT_INTENT_VALUE = -1;
@@ -33,4 +35,13 @@ public interface Constants {
     int DEFAULT_MAX_ROW_COL = -100;
     int WIN_COUNT = 5;
     int DEFAULT_COUNT = 0;
+    int[] DELTA_ROW = {1, 1, 1, 0};
+    int[] DELTA_COL = {-1, 0, 1, 1};
+    int LENGTH = 4;
+    int BEST_SCORE = 10000;
+    int[] ATTACK_SCORE = {-1, 0, 2, 8, 5000, 10000};
+    int[] DEFENSE_SCORE = {-1, 0, 2, 6, 800, 7000};
+    int[] BONUS = {150, 30};
+    int NUMBER_BONUS = 2;
+    int OUT_OF_DISTANCE = 2;
 }

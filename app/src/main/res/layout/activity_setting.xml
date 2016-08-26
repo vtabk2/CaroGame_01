@@ -30,9 +30,9 @@
         android:padding="@dimen/padding_medium">
 
         <CheckBox
-            android:id="@+id/checkbox_block_two_head_win"
+            android:id="@+id/checkbox_two_head_win_block"
             style="@style/item_checkbox_settings"
-            android:text="@string/block_two_head_win"/>
+            android:text="@string/two_head_win_block"/>
 
         <include layout="@layout/line_break"/>
 
@@ -40,6 +40,56 @@
             android:id="@+id/checkbox_sound"
             style="@style/item_checkbox_settings"
             android:text="@string/sound"/>
+
+        <include layout="@layout/line_break"/>
+
+        <TextView
+            style="@style/text_settings"
+            android:text="@string/level_game"
+            android:visibility="gone"/>
+
+        <RadioGroup
+            android:id="@+id/radio_group_level_game"
+            style="@style/radio_group_settings"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <RadioButton
+                android:id="@+id/radio_button_easy"
+                style="@style/radio_button_settings"
+                android:checked="true"
+                android:text="@string/game_easy"/>
+
+            <RadioButton
+                android:id="@+id/radio_button_medium"
+                style="@style/radio_button_settings"
+                android:text="@string/game_medium"/>
+
+            <RadioButton
+                android:id="@+id/radio_button_hard"
+                style="@style/radio_button_settings"
+                android:text="@string/game_hard"/>
+        </RadioGroup>
+
+        <TextView
+            style="@style/text_settings"
+            android:text="@string/text_choose_orientation"/>
+
+        <RadioGroup
+            android:id="@+id/radio_group_orientation"
+            style="@style/radio_group_settings"
+            android:orientation="horizontal">
+
+            <RadioButton
+                android:id="@+id/radio_button_portrait"
+                style="@style/radio_button_settings"
+                android:text="@string/text_orientation_portrait"/>
+
+            <RadioButton
+                android:id="@+id/radio_button_landscape"
+                style="@style/radio_button_settings"
+                android:text="@string/text_orientation_landscape"/>
+        </RadioGroup>
 
         <include layout="@layout/line_break"/>
     </LinearLayout>

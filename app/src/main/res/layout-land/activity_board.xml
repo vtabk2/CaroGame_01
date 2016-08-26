@@ -29,6 +29,11 @@
             android:src="@drawable/ic_exit"/>
 
         <ImageButton
+            android:id="@+id/image_button_share"
+            style="@style/button_board_screen_land"
+            android:src="@drawable/ic_share"/>
+
+        <ImageButton
             android:id="@+id/image_button_search"
             style="@style/button_board_screen_land"
             android:src="@drawable/ic_search"/>
@@ -73,6 +78,17 @@
             android:layout_centerHorizontal="true"
             android:layout_centerVertical="true"
             android:text="@string/btn_play"/>
+
+        <TextView
+            android:id="@+id/text_view_player_turn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:text="@string/your_turn"
+            android:textColor="@android:color/black"
+            android:textSize="@dimen/text_size_medium"
+            android:visibility="invisible"/>
 
         <include
             android:id="@+id/layout_profile_player_right"

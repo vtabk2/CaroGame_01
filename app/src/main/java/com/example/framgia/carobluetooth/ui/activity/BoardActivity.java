@@ -1,6 +1,5 @@
 package com.example.framgia.carobluetooth.ui.activity;
 
-import android.Manifest;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.content.DialogInterface;
@@ -8,21 +7,16 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.net.Uri;
 import android.os.BatteryManager;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.StringRes;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.text.format.DateFormat;
 import android.view.View;
 import android.widget.Button;
 import android.widget.HorizontalScrollView;
@@ -39,14 +33,12 @@ import com.example.framgia.carobluetooth.data.model.GameData;
 import com.example.framgia.carobluetooth.service.BluetoothConnectionService;
 import com.example.framgia.carobluetooth.ui.customview.BoardView;
 import com.example.framgia.carobluetooth.ui.listener.OnGetBoardInfo;
+import com.example.framgia.carobluetooth.utility.ShareUtils;
 import com.example.framgia.carobluetooth.utility.ToastUtils;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.util.Date;
 import java.util.Locale;
 
 import uk.co.deanwild.materialshowcaseview.MaterialShowcaseSequence;
@@ -56,11 +48,6 @@ public class BoardActivity extends AppCompatActivity implements View.OnClickList
     OnGetBoardInfo, View.OnLongClickListener {
     private static final int REQUEST_CONNECT_DEVICE = 1;
     private static final int REQUEST_ENABLE_BLUETOOTH = 2;
-    private static final int REQUEST_WRITE_EXTERNAL_STORAGE = 3;
-    private static final String DATE_FORMAT = "yyyy-MM-dd_hh:mm:ss";
-    private static final String IMAGE_PATH_FORMAT = "%s/%s.jpg";
-    private static final String SHARE_IMAGE_TYPE = "image/";
-    private static final int IMAGE_QUALITY = 100;
     private static final int BATTERY_LOW = 15;
     private static final String SHOWCASE_ID = "multi_player_tutorial";
     private BluetoothAdapter mBluetoothAdapter;
@@ -184,7 +171,7 @@ public class BoardActivity extends AppCompatActivity implements View.OnClickList
                 handlePlayButton();
                 break;
             case R.id.image_button_share:
-                requestShareScreenShot();
+                ShareUtils.requestShareScreenShot(this);
                 break;
         }
     }
@@ -429,7 +416,7 @@ public class BoardActivity extends AppCompatActivity implements View.OnClickList
             case REQUEST_WRITE_EXTERNAL_STORAGE:
                 if (grantResults.length > 0 &&
                     grantResults[0] == PackageManager.PERMISSION_GRANTED)
-                    takeScreenshot();
+                    ShareUtils.takeScreenshot(this);
                 else ToastUtils.showToast(this, R.string.permission_to_share_image);
                 break;
         }
@@ -448,48 +435,6 @@ public class BoardActivity extends AppCompatActivity implements View.OnClickList
                     public void onClick(DialogInterface dialog, int which) {
                     }
                 }).show();
-    }
-
-    private void requestShareScreenShot() {
-        if (ContextCompat.checkSelfPermission(this,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
-            ActivityCompat.requestPermissions(this,
-                new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                REQUEST_WRITE_EXTERNAL_STORAGE);
-        else takeScreenshot();
-    }
-
-    private void takeScreenshot() {
-        Date now = new Date();
-        DateFormat.format(DATE_FORMAT, now);
-        try {
-            String path = String.format(IMAGE_PATH_FORMAT, Environment.getExternalStorageDirectory()
-                .toString(), now);
-            View rootView = getWindow().getDecorView().getRootView();
-            rootView.setDrawingCacheEnabled(true);
-            Bitmap bitmap = Bitmap.createBitmap(rootView.getDrawingCache());
-            rootView.setDrawingCacheEnabled(false);
-            File imageFile = new File(path);
-            FileOutputStream outputStream = new FileOutputStream(imageFile);
-            bitmap.compress(Bitmap.CompressFormat.JPEG, IMAGE_QUALITY, outputStream);
-            outputStream.flush();
-            outputStream.close();
-            shareImage(imageFile);
-        } catch (IOException e) {
-            ToastUtils.showToast(this, R.string.something_error);
-        }
-    }
-
-    private void shareImage(File imageFile) {
-        if (imageFile == null) {
-            ToastUtils.showToast(this, R.string.something_error);
-            return;
-        }
-        Intent intent = new Intent(Intent.ACTION_SEND);
-        intent.setType(SHARE_IMAGE_TYPE);
-        intent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(imageFile));
-        if (intent.resolveActivity(getPackageManager()) != null) startActivity(intent);
-        else ToastUtils.showToast(this, R.string.no_app_can_share_image);
     }
 
     private void updateGameDataToBoard(GameData gameData) {

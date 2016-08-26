@@ -70,7 +70,7 @@ public class BoardView extends View implements Constants {
             context.getSharedPreferences(SHARED_PREFERENCES, Context.MODE_PRIVATE);
         mEditor = mSharedPreferences.edit();
         mPointLastMove = new Point(DEFAULT_LAST_MOVE, DEFAULT_LAST_MOVE);
-        mIsBlockTwoHeadWin = mSharedPreferences.getBoolean(BLOCK_TWO_HEAD_WIN, false);
+        mIsBlockTwoHeadWin = mSharedPreferences.getBoolean(TWO_HEAD_WIN_BLOCK, false);
     }
 
     protected void initBoard() {

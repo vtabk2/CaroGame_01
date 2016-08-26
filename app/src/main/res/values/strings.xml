@@ -87,6 +87,13 @@
     <string name="search_device">Search other device</string>
     <string name="text_button_settings">Settings</string>
     <string name="text_settings">SETTINGS</string>
-    <string name="block_two_head_win">Block two head win</string>
+    <string name="two_head_win_block">Two head win block</string>
     <string name="sound">Sound</string>
+    <string name="game_easy">Easy</string>
+    <string name="game_medium">Medium</string>
+    <string name="game_hard">Hard</string>
+    <string name="level_game">Level game :</string>
+    <string name="text_orientation_portrait">Portrait</string>
+    <string name="text_orientation_landscape">Landscape</string>
+    <string name="text_choose_orientation">Choose orientation board :</string>
 </resources>

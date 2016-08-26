@@ -19,8 +19,9 @@
     <dimen name="stroke_with">1dp</dimen>
     <dimen name="corners_radius">10dp</dimen>
     <dimen name="relative_layout_player_item_height">80dp</dimen>
-    <dimen name="relative_layout_player_item_width_land">115dp</dimen>
+    <dimen name="relative_layout_player_item_width_land">125dp</dimen>
     <dimen name="text_size_settings">30sp</dimen>
     <dimen name="margin_medium">10dp</dimen>
     <dimen name="item_checkbox_settings_text_size">18sp</dimen>
+    <dimen name="radio_group_settings_width">300dp</dimen>
 </resources>

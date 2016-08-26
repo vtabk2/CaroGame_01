@@ -80,4 +80,24 @@
         <item name="android:paddingBottom">@dimen/padding_medium</item>
         <item name="android:textAlignment">textStart</item>
     </style>
+
+    <style name="radio_button_settings">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+    </style>
+
+    <style name="text_settings">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:padding">@dimen/margin_medium</item>
+        <item name="android:textColor">@android:color/black</item>
+        <item name="android:textSize">@dimen/item_checkbox_settings_text_size</item>
+    </style>
+
+    <style name="radio_group_settings">
+        <item name="android:layout_width">@dimen/radio_group_settings_width</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_gravity">center</item>
+    </style>
 </resources>

@@ -6,15 +6,17 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 
 import com.example.framgia.carobluetooth.R;
 import com.example.framgia.carobluetooth.data.Constants;
 
 public class SettingActivity extends AppCompatActivity
     implements Constants, CompoundButton.OnCheckedChangeListener {
-    private SharedPreferences mSharedPreferences;
     private SharedPreferences.Editor mEditor;
     private CheckBox mCheckBoxBlockTwoHeadWin, mCheckBoxSound;
+    private RadioGroup mRadioGroupOrientation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,14 +27,22 @@ public class SettingActivity extends AppCompatActivity
     }
 
     private void initViews() {
-        mSharedPreferences = getSharedPreferences(SHARED_PREFERENCES, Context
+        SharedPreferences sharedPreferences = getSharedPreferences(SHARED_PREFERENCES, Context
             .MODE_PRIVATE);
-        mEditor = mSharedPreferences.edit();
-        mCheckBoxBlockTwoHeadWin = (CheckBox) findViewById(R.id.checkbox_block_two_head_win);
+        mEditor = sharedPreferences.edit();
+        mCheckBoxBlockTwoHeadWin = (CheckBox) findViewById(R.id.checkbox_two_head_win_block);
         mCheckBoxSound = (CheckBox) findViewById(R.id.checkbox_sound);
+        RadioButton radioButtonLandscape = (RadioButton) findViewById(R.id.radio_button_landscape);
+        RadioButton radioButtonPortrait = (RadioButton) findViewById(R.id.radio_button_portrait);
+        mRadioGroupOrientation = (RadioGroup) findViewById(R.id.radio_group_orientation);
         mCheckBoxBlockTwoHeadWin
-            .setChecked(mSharedPreferences.getBoolean(BLOCK_TWO_HEAD_WIN, false));
-        mCheckBoxSound.setChecked(mSharedPreferences.getBoolean(SOUND, true));
+            .setChecked(sharedPreferences.getBoolean(TWO_HEAD_WIN_BLOCK, true));
+        mCheckBoxSound.setChecked(sharedPreferences.getBoolean(SOUND, true));
+        boolean isPortrait = sharedPreferences.getBoolean(SCREEN_ORIENTATION_PORTRAIT, true);
+        radioButtonPortrait.setChecked(isPortrait);
+        radioButtonLandscape.setChecked(!isPortrait);
+        radioButtonLandscape.setOnCheckedChangeListener(this);
+        radioButtonPortrait.setOnCheckedChangeListener(this);
     }
 
     private void handleViewsOnClick() {
@@ -43,11 +53,25 @@ public class SettingActivity extends AppCompatActivity
     @Override
     public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
         switch (compoundButton.getId()) {
-            case R.id.checkbox_block_two_head_win:
-                mEditor.putBoolean(BLOCK_TWO_HEAD_WIN, isChecked);
+            case R.id.checkbox_two_head_win_block:
+                mEditor.putBoolean(TWO_HEAD_WIN_BLOCK, isChecked);
                 break;
             case R.id.checkbox_sound:
                 mEditor.putBoolean(SOUND, isChecked);
+                break;
+        }
+        mEditor.apply();
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        switch (mRadioGroupOrientation.getCheckedRadioButtonId()) {
+            case R.id.radio_button_landscape:
+                mEditor.putBoolean(SCREEN_ORIENTATION_PORTRAIT, false);
+                break;
+            case R.id.radio_button_portrait:
+                mEditor.putBoolean(SCREEN_ORIENTATION_PORTRAIT, true);
                 break;
         }
         mEditor.apply();

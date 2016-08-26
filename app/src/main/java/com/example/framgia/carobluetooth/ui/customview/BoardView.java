@@ -48,6 +48,7 @@ public class BoardView extends View implements Constants {
     protected GameState mGameState;
     protected Point mPointLastMove;
     protected int mCellSize;
+    protected boolean mIsBlockTwoHeadWin;
 
     public BoardView(Context context) {
         super(context);
@@ -65,10 +66,11 @@ public class BoardView extends View implements Constants {
         mRectCell.set(MARGIN, MARGIN, mCellSize, mCellSize);
         mGameData = new GameData();
         mTurnGame = TurnGame.YOUR_TURN;
-        mSharedPreferences = getContext().getSharedPreferences(SHARED_PREFERENCES,
-            getContext().MODE_PRIVATE);
+        mSharedPreferences =
+            context.getSharedPreferences(SHARED_PREFERENCES, Context.MODE_PRIVATE);
         mEditor = mSharedPreferences.edit();
         mPointLastMove = new Point(DEFAULT_LAST_MOVE, DEFAULT_LAST_MOVE);
+        mIsBlockTwoHeadWin = mSharedPreferences.getBoolean(BLOCK_TWO_HEAD_WIN, false);
     }
 
     protected void initBoard() {
@@ -83,8 +85,6 @@ public class BoardView extends View implements Constants {
                 if (mItemCaros[i][j] != null)
                     mItemCaros[i][j].setBoardCellState(BoardCellState.EMPTY);
                 else mItemCaros[i][j] = new ItemCaro(i, j, BoardCellState.EMPTY);
-        mMinCol = mMinRow = DEFAULT_MIN_ROW_COL;
-        mMaxCol = mMaxRow = DEFAULT_MAX_ROW_COL;
         mGameState = GameState.NONE;
     }
 
@@ -170,10 +170,6 @@ public class BoardView extends View implements Constants {
                         && curY <= mRectTable.bottom && curY >= mRectTable.top) {
                         int colIndex = (curX - MARGIN) / mCellSize;
                         int rowIndex = (curY - MARGIN) / mCellSize;
-                        if (colIndex < mMinCol) mMinCol = colIndex;
-                        if (colIndex > mMaxCol) mMaxCol = colIndex;
-                        if (rowIndex < mMinRow) mMinRow = rowIndex;
-                        if (rowIndex > mMaxRow) mMaxRow = rowIndex;
                         if (mItemCaros[rowIndex][colIndex].getBoardCellState() !=
                             BoardCellState.EMPTY) return true;
                         if (mIsPlayerX) mItemCaros[rowIndex][colIndex]
@@ -181,8 +177,7 @@ public class BoardView extends View implements Constants {
                         else mItemCaros[rowIndex][colIndex]
                             .setBoardCellState(BoardCellState.PLAYER_O);
                         invalidate();
-                        if (isEndGame(
-                            mIsPlayerX ? BoardCellState.PLAYER_X : BoardCellState.PLAYER_O)) {
+                        if (isEndGame(mItemCaros[rowIndex][colIndex])) {
                             mGameData.updateGameData(mItemCaros[rowIndex][colIndex], mGameState,
                                 mTurnGame, Navigation.NONE);
                             showEndGame();
@@ -269,18 +264,16 @@ public class BoardView extends View implements Constants {
         } else ToastUtils.showToast(getContext(), R.string.not_connected_any_device);
     }
 
-    protected boolean checkWin(BoardCellState boardCellState) {
-        return checkWinVertical(boardCellState) ||
-            checkWinHorizontal(boardCellState) ||
-            checkWinRightDiagonalUp(boardCellState) ||
-            checkWinRightDiagonalDown(boardCellState) ||
-            checkWinLeftDiagonalUp(boardCellState) ||
-            checkWinLeftDiagonalDown(boardCellState);
+    private boolean checkWin(ItemCaro itemCaro) {
+        updateMinMaxRowCol(itemCaro.getPosX(), itemCaro.getPosY());
+        return checkWinVertical(itemCaro) || checkWinHorizontal(itemCaro) ||
+            checkWinRightDiagonalUp(itemCaro) || checkWinRightDiagonalDown(itemCaro) ||
+            checkWinLeftDiagonalUp(itemCaro) || checkWinLeftDiagonalDown(itemCaro);
     }
 
-    protected boolean isEndGame(BoardCellState boardCellState) {
-        if (!checkWin(boardCellState)) return false;
-        switch (boardCellState) {
+    protected boolean isEndGame(ItemCaro itemCaro) {
+        if (!checkWin(itemCaro)) return false;
+        switch (itemCaro.getBoardCellState()) {
             case PLAYER_X:
             case HUMAN:
                 mGameState = GameState.PLAYER_X_WIN;
@@ -291,104 +284,6 @@ public class BoardView extends View implements Constants {
                 break;
         }
         return true;
-    }
-
-    protected boolean checkWinVertical(BoardCellState boardCellState) {
-        int count, row;
-        for (int col = mMinCol; col <= mMaxCol; col++) {
-            row = mMinRow;
-            count = DEFAULT_COUNT;
-            while (count < WIN_COUNT && row <= mMaxRow) {
-                if (mItemCaros[row][col].getBoardCellState() == boardCellState) count++;
-                else count = DEFAULT_COUNT;
-                row++;
-            }
-            if (count >= WIN_COUNT) return true;
-        }
-        return false;
-    }
-
-    protected boolean checkWinHorizontal(BoardCellState boardCellState) {
-        int count, col;
-        for (int row = mMinRow; row <= mMaxRow; row++) {
-            col = mMinCol;
-            count = DEFAULT_COUNT;
-            while (count < WIN_COUNT && col <= mMaxCol) {
-                if (mItemCaros[row][col].getBoardCellState() == boardCellState) count++;
-                else count = DEFAULT_COUNT;
-                col++;
-            }
-            if (count >= WIN_COUNT) return true;
-        }
-        return false;
-    }
-
-    protected boolean checkWinRightDiagonalUp(BoardCellState boardCellState) {
-        int count, col, row, colIndex;
-        for (col = mMinCol; col <= mMaxCol; col++) {
-            row = mMinRow;
-            count = DEFAULT_COUNT;
-            colIndex = col;
-            while (count < WIN_COUNT && row <= mMaxRow && colIndex <= mMaxCol) {
-                if (mItemCaros[row][colIndex].getBoardCellState() == boardCellState) count++;
-                else count = DEFAULT_COUNT;
-                row++;
-                colIndex++;
-            }
-            if (count >= WIN_COUNT) return true;
-        }
-        return false;
-    }
-
-    protected boolean checkWinRightDiagonalDown(BoardCellState boardCellState) {
-        int count, col, row, rowIndex;
-        for (row = mMinRow; row <= mMaxRow; row++) {
-            rowIndex = row;
-            count = DEFAULT_COUNT;
-            col = mMinCol;
-            while (count < WIN_COUNT && rowIndex <= mMaxRow && col <= mMaxCol) {
-                if (mItemCaros[rowIndex][col].getBoardCellState() == boardCellState) count++;
-                else count = DEFAULT_COUNT;
-                rowIndex++;
-                col++;
-            }
-            if (count >= WIN_COUNT) return true;
-        }
-        return false;
-    }
-
-    protected boolean checkWinLeftDiagonalUp(BoardCellState boardCellState) {
-        int count, col, row, colIndex;
-        for (col = mMinCol; col <= mMaxCol; col++) {
-            row = mMaxRow;
-            count = DEFAULT_COUNT;
-            colIndex = col;
-            while (count < WIN_COUNT && row >= mMinRow && colIndex <= mMaxCol) {
-                if (mItemCaros[row][colIndex].getBoardCellState() == boardCellState) count++;
-                else count = DEFAULT_COUNT;
-                row--;
-                colIndex++;
-            }
-            if (count >= WIN_COUNT) return true;
-        }
-        return false;
-    }
-
-    protected boolean checkWinLeftDiagonalDown(BoardCellState boardCellState) {
-        int count, col, row, rowIndex;
-        for (row = mMinRow; row <= mMaxRow; row++) {
-            rowIndex = row;
-            count = DEFAULT_COUNT;
-            col = mMinCol;
-            while (count < WIN_COUNT && rowIndex >= mMinRow && col <= mMaxCol) {
-                if (mItemCaros[rowIndex][col].getBoardCellState() == boardCellState) count++;
-                else count = DEFAULT_COUNT;
-                rowIndex--;
-                col++;
-            }
-            if (count >= WIN_COUNT) return true;
-        }
-        return false;
     }
 
     public GameState getGameState() {
@@ -416,6 +311,189 @@ public class BoardView extends View implements Constants {
         }
     }
 
+    public boolean isPlayerX() {
+        return mIsPlayerX;
+    }
+
+    private void updateMinMaxRowCol(int row, int col) {
+        mMinRow = row - WIN_COUNT < 0 ? 0 : row - WIN_COUNT;
+        mMaxRow = row + WIN_COUNT > ROW - 1 ? ROW - 1 : row + WIN_COUNT;
+        mMinCol = col - WIN_COUNT < 0 ? 0 : col - WIN_COUNT;
+        mMaxCol = col + WIN_COUNT > COL - 1 ? COL - 1 : col + WIN_COUNT;
+    }
+
+    protected boolean checkWinVertical(ItemCaro itemCaro) {
+        BoardCellState boardCellState = itemCaro.getBoardCellState();
+        int count, row;
+        for (int col = mMinCol; col <= mMaxCol; col++) {
+            row = mMinRow;
+            count = DEFAULT_COUNT;
+            while (count < WIN_COUNT && row <= mMaxRow) {
+                if (mItemCaros[row][col].getBoardCellState() ==
+                    itemCaro.getBoardCellState())
+                    count++;
+                else count = DEFAULT_COUNT;
+                row++;
+            }
+            if (count == WIN_COUNT) {
+                if (!mIsBlockTwoHeadWin) {
+                    int borderRowMin = row - WIN_COUNT - 1;
+                    return !isInside(borderRowMin, col) || !isInside(row, col) ||
+                        !isBlock(borderRowMin, col, boardCellState) ||
+                        !isBlock(row, col, boardCellState) ||
+                        !(isBlock(borderRowMin, col, boardCellState) &&
+                            isBlock(row, col, boardCellState));
+                } else return true;
+            }
+        }
+        return false;
+    }
+
+    protected boolean checkWinHorizontal(ItemCaro itemCaro) {
+        BoardCellState boardCellState = itemCaro.getBoardCellState();
+        int count, col;
+        for (int row = mMinRow; row <= mMaxRow; row++) {
+            col = mMinCol;
+            count = DEFAULT_COUNT;
+            while (count < WIN_COUNT && col <= mMaxCol) {
+                if (mItemCaros[row][col].getBoardCellState() == boardCellState) count++;
+                else count = DEFAULT_COUNT;
+                col++;
+            }
+            if (count == WIN_COUNT) {
+                if (!mIsBlockTwoHeadWin) {
+                    int borderColMin = col - WIN_COUNT - 1;
+                    return !isInside(row, borderColMin) || !isInside(row, col) ||
+                        !isBlock(row, borderColMin, boardCellState) ||
+                        !isBlock(row, col, boardCellState) ||
+                        !(isBlock(row, borderColMin, boardCellState) &&
+                            isBlock(row, col, boardCellState));
+                } else return true;
+            }
+        }
+        return false;
+    }
+
+    protected boolean checkWinRightDiagonalUp(ItemCaro itemCaro) {
+        BoardCellState boardCellState = itemCaro.getBoardCellState();
+        int count, col, row, colIndex;
+        for (col = mMinCol; col <= mMaxCol; col++) {
+            row = mMinRow;
+            count = DEFAULT_COUNT;
+            colIndex = col;
+            while (count < WIN_COUNT && row <= mMaxRow && colIndex <= mMaxCol) {
+                if (mItemCaros[row][colIndex].getBoardCellState() == boardCellState) count++;
+                else count = DEFAULT_COUNT;
+                row++;
+                colIndex++;
+            }
+            if (count == WIN_COUNT) {
+                if (!mIsBlockTwoHeadWin) {
+                    int borderRowMin = row - WIN_COUNT - 1;
+                    int borderColMin = colIndex - WIN_COUNT - 1;
+                    return !isInside(borderRowMin, borderColMin) || !isInside(row, colIndex) ||
+                        !isBlock(borderRowMin, borderColMin, boardCellState) ||
+                        !isBlock(row, colIndex, boardCellState) ||
+                        !(isBlock(borderRowMin, borderColMin, boardCellState) &&
+                            isBlock(row, colIndex, boardCellState));
+                } else return true;
+            }
+        }
+        return false;
+    }
+
+    protected boolean checkWinRightDiagonalDown(ItemCaro itemCaro) {
+        BoardCellState boardCellState = itemCaro.getBoardCellState();
+        int count, col, row, rowIndex;
+        for (row = mMinRow; row <= mMaxRow; row++) {
+            rowIndex = row;
+            count = DEFAULT_COUNT;
+            col = mMinCol;
+            while (count < WIN_COUNT && rowIndex <= mMaxRow && col <= mMaxCol) {
+                if (mItemCaros[rowIndex][col].getBoardCellState() == boardCellState) count++;
+                else count = DEFAULT_COUNT;
+                rowIndex++;
+                col++;
+            }
+            if (count == WIN_COUNT) {
+                if (!mIsBlockTwoHeadWin) {
+                    int borderRowMin = rowIndex - WIN_COUNT - 1;
+                    int borderColMin = col - WIN_COUNT - 1;
+                    return !isInside(borderRowMin, borderColMin) || !isInside(rowIndex, col) ||
+                        !isBlock(borderRowMin, borderColMin, boardCellState) ||
+                        !isBlock(rowIndex, col, boardCellState) ||
+                        !(isBlock(borderRowMin, borderColMin, boardCellState) &&
+                            isBlock(rowIndex, col, boardCellState));
+                } else return true;
+            }
+        }
+        return false;
+    }
+
+    protected boolean checkWinLeftDiagonalUp(ItemCaro itemCaro) {
+        BoardCellState boardCellState = itemCaro.getBoardCellState();
+        int count, col, row, colIndex;
+        for (col = mMinCol; col <= mMaxCol; col++) {
+            row = mMaxRow;
+            count = DEFAULT_COUNT;
+            colIndex = col;
+            while (count < WIN_COUNT && row >= mMinRow && colIndex <= mMaxCol) {
+                if (mItemCaros[row][colIndex].getBoardCellState() == boardCellState) count++;
+                else count = DEFAULT_COUNT;
+                row--;
+                colIndex++;
+            }
+            if (count == WIN_COUNT) {
+                if (!mIsBlockTwoHeadWin) {
+                    int borderRowMax = row + WIN_COUNT + 1;
+                    int borderColMin = colIndex - WIN_COUNT - 1;
+                    return !isInside(borderRowMax, borderColMin) || !isInside(row, colIndex) ||
+                        !isBlock(borderRowMax, borderColMin, boardCellState) ||
+                        !isBlock(row, colIndex, boardCellState) ||
+                        !(isBlock(borderRowMax, borderColMin, boardCellState) &&
+                            isBlock(row, colIndex, boardCellState));
+                } else return true;
+            }
+        }
+        return false;
+    }
+
+    protected boolean checkWinLeftDiagonalDown(ItemCaro itemCaro) {
+        BoardCellState boardCellState = itemCaro.getBoardCellState();
+        int count, col, row, rowIndex;
+        for (row = mMinRow; row <= mMaxRow; row++) {
+            rowIndex = row;
+            count = DEFAULT_COUNT;
+            col = mMinCol;
+            while (count < WIN_COUNT && rowIndex >= mMinRow && col <= mMaxCol) {
+                if (mItemCaros[rowIndex][col].getBoardCellState() == boardCellState) count++;
+                else count = DEFAULT_COUNT;
+                rowIndex--;
+                col++;
+            }
+            if (count == WIN_COUNT) {
+                if (!mIsBlockTwoHeadWin) {
+                    int borderRowMax = rowIndex + WIN_COUNT + 1;
+                    int borderColMin = col - WIN_COUNT - 1;
+                    return !isInside(borderRowMax, borderColMin) || !isInside(rowIndex, col) ||
+                        !isBlock(borderRowMax, borderColMin, boardCellState) ||
+                        !isBlock(rowIndex, col, boardCellState) ||
+                        !(isBlock(borderRowMax, borderColMin, boardCellState) &&
+                            isBlock(rowIndex, col, boardCellState));
+                } else return true;
+            }
+        }
+        return false;
+    }
+
+    protected boolean isInside(int row, int col) {
+        return row >= 0 && row < ROW && col >= 0 && col < COL;
+    }
+
+    protected int getBoardCellState(int row, int col) {
+        return mItemCaros[row][col].getBoardCellState().getValues();
+    }
+
     private void handleYourTurn(GameData gameData) {
         ItemCaro itemCaro = gameData.getItemCaro();
         mPointLastMove.x = itemCaro.getPosX();
@@ -441,8 +519,13 @@ public class BoardView extends View implements Constants {
         mTurnGame = TurnGame.YOUR_TURN;
     }
 
-    public boolean isPlayerX() {
-        return mIsPlayerX;
+    protected int getBoardCellState(Point point) {
+        return mItemCaros[point.x][point.y].getBoardCellState().getValues();
+    }
+
+    protected boolean isBlock(int row, int col, BoardCellState boardCellState) {
+        return !(getBoardCellState(row, col) == BoardCellState.EMPTY.getValues() ||
+            getBoardCellState(row, col) == boardCellState.getValues());
     }
 }
 

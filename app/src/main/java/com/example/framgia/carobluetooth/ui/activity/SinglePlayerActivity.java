@@ -17,6 +17,7 @@ import android.widget.TextView;
 
 import com.example.framgia.carobluetooth.R;
 import com.example.framgia.carobluetooth.data.Constants;
+import com.example.framgia.carobluetooth.data.enums.GameState;
 import com.example.framgia.carobluetooth.ui.customview.SingleBoardView;
 import com.example.framgia.carobluetooth.ui.listener.OnGetSingleBoardInfo;
 
@@ -30,6 +31,7 @@ public class SinglePlayerActivity extends AppCompatActivity
     private SharedPreferences mSharedPreferences;
     private TextView mTextViewHumanWinLose, mTextViewMachineWinLose, mTextViewPlayerTurn;
     private LinearLayout mLinearLayoutHuman, mLinearLayoutMachine;
+    private SingleBoardView mSingleBoardView;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -58,8 +60,9 @@ public class SinglePlayerActivity extends AppCompatActivity
             .setText(getString(R.string.you));
         ((TextView) mLinearLayoutMachine.findViewById(R.id.text_player_name))
             .setText(getString(R.string.computer_easy));
+        mSingleBoardView = new SingleBoardView(this);
         ((HorizontalScrollView) findViewById(R.id.horizontal_scroll_board))
-            .addView(new SingleBoardView(this));
+            .addView(mSingleBoardView);
         mSharedPreferences = getSharedPreferences(SHARED_PREFERENCES, MODE_PRIVATE);
     }
 
@@ -93,7 +96,7 @@ public class SinglePlayerActivity extends AppCompatActivity
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.image_button_back:
-                showBackGame();
+                onBackPressed();
                 break;
         }
     }
@@ -125,6 +128,7 @@ public class SinglePlayerActivity extends AppCompatActivity
 
     @Override
     public void onBackPressed() {
-        showBackGame();
+        if (mSingleBoardView.getGameState() == GameState.PLAYING) showBackGame();
+        else finish();
     }
 }

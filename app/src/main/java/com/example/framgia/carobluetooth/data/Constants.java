@@ -33,8 +33,6 @@ public interface Constants {
     int COL = 50;
     int ROW = 50;
     int DEFAULT_INTENT_VALUE = -1;
-    int DEFAULT_MIN_ROW_COL = 100;
-    int DEFAULT_MAX_ROW_COL = -100;
     int WIN_COUNT = 5;
     int DEFAULT_COUNT = 0;
     int[] DELTA_ROW = {1, 1, 1, 0};
@@ -48,4 +46,6 @@ public interface Constants {
     int OUT_OF_DISTANCE = 2;
     int SEQUENCE_DELAY_TIME = 50;
     int DEFAULT_LAST_MOVE = -1;
+    String BLOCK_TWO_HEAD_WIN = "block two head win";
+    String SOUND = "sound";
 }

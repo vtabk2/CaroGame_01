@@ -165,8 +165,7 @@ public class BoardActivity extends AppCompatActivity implements View.OnClickList
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.image_button_back:
-                if (mBoardView.getGameState() == GameState.PLAYING) showBackGame();
-                else finish();
+                onBackPressed();
                 break;
             case R.id.image_button_undo:
                 if (mBoardView.getGameState() == GameState.PLAYING) showUndoGame();

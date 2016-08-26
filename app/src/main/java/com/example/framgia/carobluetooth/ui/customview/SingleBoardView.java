@@ -12,6 +12,7 @@ import com.example.framgia.carobluetooth.data.enums.GameState;
 import com.example.framgia.carobluetooth.data.enums.TurnGame;
 import com.example.framgia.carobluetooth.data.model.ItemCaro;
 import com.example.framgia.carobluetooth.ui.listener.OnGetSingleBoardInfo;
+import com.example.framgia.carobluetooth.utility.SoundUtils;
 import com.example.framgia.carobluetooth.utility.ToastUtils;
 
 /**
@@ -48,27 +49,29 @@ public class SingleBoardView extends BoardView {
                     int rowIndex = (curY - MARGIN) / mCellSize;
                     if (mItemCaros[rowIndex][colIndex].getBoardCellState() !=
                         BoardCellState.EMPTY) return true;
+                    mGameState = GameState.PLAYING;
                     if (mTurnGame == TurnGame.HUMAN) {
+                        SoundUtils.playSound(getContext(), R.raw.step, false);
                         mOnGetSingleBoardInfo.setPlayerTurnState(R.string.your_turn);
                         mOnGetSingleBoardInfo.setPlayerBackground(R.drawable
                             .surround_item_player_selected, R.drawable.surround_item_player);
-                        mItemCaros[rowIndex][colIndex]
-                            .setBoardCellState(BoardCellState.HUMAN);
-                        updateMinMaxRowCol(rowIndex, colIndex);
-                        if (!isEndGame(BoardCellState.HUMAN)) mTurnGame = TurnGame.MACHINE;
+                        mItemCaros[rowIndex][colIndex].setBoardCellState(BoardCellState.HUMAN);
+                        mPointLastMove.set(rowIndex, colIndex);
+                        if (!isEndGame(mItemCaros[rowIndex][colIndex]))
+                            mTurnGame = TurnGame.MACHINE;
                     }
                     if (mTurnGame == TurnGame.MACHINE) {
+                        SoundUtils.playSound(getContext(), R.raw.step, false);
                         mOnGetSingleBoardInfo.setPlayerTurnState(R.string.opponent_turn);
                         mOnGetSingleBoardInfo.setPlayerBackground(R.drawable
                             .surround_item_player, R.drawable.surround_item_player_selected);
                         mPointLastMove = computerPlay(mItemCaros);
                         mItemCaros[mPointLastMove.x][mPointLastMove.y]
                             .setBoardCellState(BoardCellState.MACHINE);
-                        updateMinMaxRowCol(mPointLastMove.x, mPointLastMove.y);
                         mTurnGame = TurnGame.HUMAN;
                     }
                     invalidate();
-                    if (isEndGame(BoardCellState.HUMAN) || isEndGame(BoardCellState.MACHINE)) {
+                    if (isEndGame(mItemCaros[mPointLastMove.x][mPointLastMove.y])) {
                         showEndGame();
                         mTurnGame = TurnGame.NONE;
                     }
@@ -78,24 +81,20 @@ public class SingleBoardView extends BoardView {
         return false;
     }
 
-    private void updateMinMaxRowCol(int row, int col) {
-        if (col < mMinCol) mMinCol = col;
-        if (col > mMaxCol) mMaxCol = col;
-        if (row > mMaxRow) mMaxRow = row;
-        if (row < mMinRow) mMinRow = row;
-    }
-
     @Override
     protected void showEndGame() {
+        SoundUtils.playSound(getContext(), R.raw.finish, false);
         String title = null;
         if (mGameState == GameState.PLAYER_X_WIN) {
             title = getContext().getString(R.string.message_win_game_play);
             mEditor.putInt(WIN_HUMAN, mSharedPreferences.getInt(WIN_HUMAN, WIN_LOSE_DEFAULT)
                 + INCREASE_DEFAULT);
+            SoundUtils.playSound(getContext(), R.raw.win, false);
         } else if (mGameState == GameState.PLAYER_X_LOSE) {
             title = getContext().getString(R.string.message_lose_game_play);
             mEditor.putInt(LOSE_HUMAN, mSharedPreferences.getInt(LOSE_HUMAN, WIN_LOSE_DEFAULT)
                 + INCREASE_DEFAULT);
+            SoundUtils.playSound(getContext(), R.raw.lose, false);
         }
         mEditor.apply();
         new AlertDialog.Builder(getContext())
@@ -287,10 +286,6 @@ public class SingleBoardView extends BoardView {
             getBoardCellState(point) == BoardCellState.EMPTY.getValues();
     }
 
-    private boolean isInside(int row, int col) {
-        return row >= 0 && row < ROW && col >= 0 && col < COL;
-    }
-
     private Point checkLine(int row, int col, int dx, int dy) {
         int x = row, y = col;
         do {
@@ -298,13 +293,5 @@ public class SingleBoardView extends BoardView {
             y += dy;
         } while (isInside(x, y) && getBoardCellState(x, y) == getBoardCellState(row, col));
         return (new Point(x, y));
-    }
-
-    public int getBoardCellState(Point point) {
-        return mItemCaros[point.x][point.y].getBoardCellState().getValues();
-    }
-
-    public int getBoardCellState(int row, int col) {
-        return mItemCaros[row][col].getBoardCellState().getValues();
     }
 }

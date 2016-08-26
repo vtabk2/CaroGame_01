@@ -28,6 +28,7 @@ public class SingleBoardView extends BoardView {
     @Override
     protected void onSizeChanged(int width, int height, int oldWidth, int oldHeight) {
         mOnGetSingleBoardInfo = (OnGetSingleBoardInfo) getContext();
+        mOnGetSingleBoardInfo.setPlayerTurnState(R.string.your_turn);
         initBoard();
     }
 
@@ -48,16 +49,22 @@ public class SingleBoardView extends BoardView {
                     if (mItemCaros[rowIndex][colIndex].getBoardCellState() !=
                         BoardCellState.EMPTY) return true;
                     if (mTurnGame == TurnGame.HUMAN) {
+                        mOnGetSingleBoardInfo.setPlayerTurnState(R.string.your_turn);
+                        mOnGetSingleBoardInfo.setPlayerBackground(R.drawable
+                            .surround_item_player_selected, R.drawable.surround_item_player);
                         mItemCaros[rowIndex][colIndex]
                             .setBoardCellState(BoardCellState.HUMAN);
                         updateMinMaxRowCol(rowIndex, colIndex);
                         if (!isEndGame(BoardCellState.HUMAN)) mTurnGame = TurnGame.MACHINE;
                     }
                     if (mTurnGame == TurnGame.MACHINE) {
-                        Point point = computerPlay(mItemCaros);
-                        mItemCaros[point.x][point.y]
+                        mOnGetSingleBoardInfo.setPlayerTurnState(R.string.opponent_turn);
+                        mOnGetSingleBoardInfo.setPlayerBackground(R.drawable
+                            .surround_item_player, R.drawable.surround_item_player_selected);
+                        mPointLastMove = computerPlay(mItemCaros);
+                        mItemCaros[mPointLastMove.x][mPointLastMove.y]
                             .setBoardCellState(BoardCellState.MACHINE);
-                        updateMinMaxRowCol(point.x, point.y);
+                        updateMinMaxRowCol(mPointLastMove.x, mPointLastMove.y);
                         mTurnGame = TurnGame.HUMAN;
                     }
                     invalidate();
@@ -107,7 +114,7 @@ public class SingleBoardView extends BoardView {
                         mOnGetSingleBoardInfo.onFinishGame();
                     }
                 }
-            ).show();
+            ).show().setCanceledOnTouchOutside(false);
     }
 
     private void resetGame() {

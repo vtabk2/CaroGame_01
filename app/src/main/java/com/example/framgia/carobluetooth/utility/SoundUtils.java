@@ -11,6 +11,7 @@ public class SoundUtils {
     private static MediaPlayer mMediaPlayer = new MediaPlayer();
 
     public static void playSound(Context context, @RawRes int resId, boolean isLooping) {
+        stopSound();
         mMediaPlayer.reset();
         mMediaPlayer = MediaPlayer.create(context, resId);
         mMediaPlayer.setLooping(isLooping);

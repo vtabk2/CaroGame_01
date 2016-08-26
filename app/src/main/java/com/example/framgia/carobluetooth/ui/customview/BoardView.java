@@ -25,6 +25,7 @@ import com.example.framgia.carobluetooth.data.model.GameData;
 import com.example.framgia.carobluetooth.data.model.ItemCaro;
 import com.example.framgia.carobluetooth.ui.listener.OnGetBoardInfo;
 import com.example.framgia.carobluetooth.utility.ConvertUtils;
+import com.example.framgia.carobluetooth.utility.SoundUtils;
 import com.example.framgia.carobluetooth.utility.ToastUtils;
 
 import java.util.Locale;
@@ -45,7 +46,7 @@ public class BoardView extends View implements Constants {
     protected SharedPreferences.Editor mEditor;
     private AlertDialog mDialogRestartGame;
     protected GameState mGameState;
-    private Point mPointLastMove;
+    protected Point mPointLastMove;
     protected int mCellSize;
 
     public BoardView(Context context) {
@@ -204,23 +205,28 @@ public class BoardView extends View implements Constants {
     }
 
     protected void showEndGame() {
+        SoundUtils.playSound(getContext(), R.raw.finish, false);
         String title = null;
         if (mIsPlayerX && mGameState == GameState.PLAYER_X_WIN) {
             title = getContext().getString(R.string.message_win_game_play);
             mEditor.putInt(WIN, mSharedPreferences.getInt(WIN, WIN_LOSE_DEFAULT) +
                 INCREASE_DEFAULT);
+            SoundUtils.playSound(getContext(), R.raw.win, false);
         } else if (mIsPlayerX && mGameState == GameState.PLAYER_X_LOSE) {
             title = getContext().getString(R.string.message_lose_game_play);
             mEditor.putInt(LOSE, mSharedPreferences.getInt(LOSE, WIN_LOSE_DEFAULT) +
                 INCREASE_DEFAULT);
+            SoundUtils.playSound(getContext(), R.raw.lose, false);
         } else if (!mIsPlayerX && mGameState == GameState.PLAYER_X_WIN) {
             title = getContext().getString(R.string.message_lose_game_play);
             mEditor.putInt(LOSE, mSharedPreferences.getInt(LOSE, WIN_LOSE_DEFAULT) +
                 INCREASE_DEFAULT);
+            SoundUtils.playSound(getContext(), R.raw.lose, false);
         } else if (!mIsPlayerX && mGameState == GameState.PLAYER_X_LOSE) {
             title = getContext().getString(R.string.message_win_game_play);
             mEditor.putInt(WIN, mSharedPreferences.getInt(WIN, WIN_LOSE_DEFAULT) +
                 INCREASE_DEFAULT);
+            SoundUtils.playSound(getContext(), R.raw.win, false);
         }
         mEditor.apply();
         mDialogRestartGame = new AlertDialog.Builder(getContext())
@@ -414,6 +420,7 @@ public class BoardView extends View implements Constants {
         ItemCaro itemCaro = gameData.getItemCaro();
         mPointLastMove.x = itemCaro.getPosX();
         mPointLastMove.y = itemCaro.getPosY();
+        SoundUtils.playSound(getContext(), R.raw.step, false);
         ToastUtils.showToast(getContext(), R.string.your_turn);
         mOnGetBoardInfo.setPlayerTurnState(R.string.your_turn);
         GameState gameState = gameData.getGameState();

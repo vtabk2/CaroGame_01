@@ -46,6 +46,12 @@ public interface Constants {
     int OUT_OF_DISTANCE = 2;
     int SEQUENCE_DELAY_TIME = 50;
     int DEFAULT_LAST_MOVE = -1;
-    String BLOCK_TWO_HEAD_WIN = "block two head win";
+    String TWO_HEAD_WIN_BLOCK = "two head win block";
     String SOUND = "sound";
+    int REQUEST_WRITE_EXTERNAL_STORAGE = 3;
+    String DATE_FORMAT = "yyyy-MM-dd_hh:mm:ss";
+    String IMAGE_PATH_FORMAT = "%s/%s.jpg";
+    String SHARE_IMAGE_TYPE = "image/";
+    int IMAGE_QUALITY = 100;
+    String SCREEN_ORIENTATION_PORTRAIT = "screen orientation portrait";
 }

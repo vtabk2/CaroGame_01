@@ -2,6 +2,7 @@ package com.example.framgia.carobluetooth.ui.activity;
 
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.Nullable;
@@ -20,6 +21,7 @@ import com.example.framgia.carobluetooth.data.Constants;
 import com.example.framgia.carobluetooth.data.enums.GameState;
 import com.example.framgia.carobluetooth.ui.customview.SingleBoardView;
 import com.example.framgia.carobluetooth.ui.listener.OnGetSingleBoardInfo;
+import com.example.framgia.carobluetooth.utility.ShareUtils;
 
 import java.util.Locale;
 
@@ -44,7 +46,9 @@ public class SinglePlayerActivity extends AppCompatActivity
     private void initViews() {
         findViewById(R.id.image_button_search).setVisibility(View.INVISIBLE);
         findViewById(R.id.image_button_visibility).setVisibility(View.INVISIBLE);
-        findViewById(R.id.button_play).setVisibility(View.INVISIBLE);
+        findViewById(R.id.button_play).setVisibility(View.GONE);
+        findViewById(R.id.image_button_exit).setVisibility(View.GONE);
+        findViewById(R.id.image_button_undo).setVisibility(View.GONE);
         mTextViewPlayerTurn = (TextView) findViewById(R.id.text_view_player_turn);
         mTextViewPlayerTurn.setVisibility(View.VISIBLE);
         findViewById(R.id.image_button_back).setOnClickListener(this);
@@ -64,6 +68,10 @@ public class SinglePlayerActivity extends AppCompatActivity
         ((HorizontalScrollView) findViewById(R.id.horizontal_scroll_board))
             .addView(mSingleBoardView);
         mSharedPreferences = getSharedPreferences(SHARED_PREFERENCES, MODE_PRIVATE);
+        findViewById(R.id.image_button_share).setOnClickListener(this);
+        if (mSharedPreferences.getBoolean(SCREEN_ORIENTATION_PORTRAIT, true))
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        else setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
     }
 
     @Override
@@ -97,6 +105,9 @@ public class SinglePlayerActivity extends AppCompatActivity
         switch (view.getId()) {
             case R.id.image_button_back:
                 onBackPressed();
+                break;
+            case R.id.image_button_share:
+                ShareUtils.requestShareScreenShot(this);
                 break;
         }
     }

@@ -24,6 +24,7 @@ import com.example.framgia.carobluetooth.data.enums.TurnGame;
 import com.example.framgia.carobluetooth.data.model.GameData;
 import com.example.framgia.carobluetooth.data.model.ItemCaro;
 import com.example.framgia.carobluetooth.ui.listener.OnGetBoardInfo;
+import com.example.framgia.carobluetooth.utility.AiUtils;
 import com.example.framgia.carobluetooth.utility.ConvertUtils;
 import com.example.framgia.carobluetooth.utility.SoundUtils;
 import com.example.framgia.carobluetooth.utility.ToastUtils;
@@ -40,7 +41,7 @@ public class BoardView extends View implements Constants {
     protected ItemCaro[][] mItemCaros;
     protected TurnGame mTurnGame;
     protected GameData mGameData;
-    protected int mMinCol, mMinRow, mMaxCol, mMaxRow;
+    private int mMinCol, mMinRow, mMaxCol, mMaxRow;
     private OnGetBoardInfo mOnGetBoardInfo;
     protected SharedPreferences mSharedPreferences;
     protected SharedPreferences.Editor mEditor;
@@ -329,16 +330,14 @@ public class BoardView extends View implements Constants {
             row = mMinRow;
             count = DEFAULT_COUNT;
             while (count < WIN_COUNT && row <= mMaxRow) {
-                if (mItemCaros[row][col].getBoardCellState() ==
-                    itemCaro.getBoardCellState())
-                    count++;
+                if (getBoardCellState(row, col) == boardCellState.getValues()) count++;
                 else count = DEFAULT_COUNT;
                 row++;
             }
             if (count == WIN_COUNT) {
                 if (!mIsBlockTwoHeadWin) {
                     int borderRowMin = row - WIN_COUNT - 1;
-                    return !isInside(borderRowMin, col) || !isInside(row, col) ||
+                    return !AiUtils.isInside(borderRowMin, col) || !AiUtils.isInside(row, col) ||
                         !isBlock(borderRowMin, col, boardCellState) ||
                         !isBlock(row, col, boardCellState) ||
                         !(isBlock(borderRowMin, col, boardCellState) &&
@@ -356,14 +355,14 @@ public class BoardView extends View implements Constants {
             col = mMinCol;
             count = DEFAULT_COUNT;
             while (count < WIN_COUNT && col <= mMaxCol) {
-                if (mItemCaros[row][col].getBoardCellState() == boardCellState) count++;
+                if (getBoardCellState(row, col) == boardCellState.getValues()) count++;
                 else count = DEFAULT_COUNT;
                 col++;
             }
             if (count == WIN_COUNT) {
                 if (!mIsBlockTwoHeadWin) {
                     int borderColMin = col - WIN_COUNT - 1;
-                    return !isInside(row, borderColMin) || !isInside(row, col) ||
+                    return !AiUtils.isInside(row, borderColMin) || !AiUtils.isInside(row, col) ||
                         !isBlock(row, borderColMin, boardCellState) ||
                         !isBlock(row, col, boardCellState) ||
                         !(isBlock(row, borderColMin, boardCellState) &&
@@ -382,7 +381,7 @@ public class BoardView extends View implements Constants {
             count = DEFAULT_COUNT;
             colIndex = col;
             while (count < WIN_COUNT && row <= mMaxRow && colIndex <= mMaxCol) {
-                if (mItemCaros[row][colIndex].getBoardCellState() == boardCellState) count++;
+                if (getBoardCellState(row, colIndex) == boardCellState.getValues()) count++;
                 else count = DEFAULT_COUNT;
                 row++;
                 colIndex++;
@@ -391,7 +390,8 @@ public class BoardView extends View implements Constants {
                 if (!mIsBlockTwoHeadWin) {
                     int borderRowMin = row - WIN_COUNT - 1;
                     int borderColMin = colIndex - WIN_COUNT - 1;
-                    return !isInside(borderRowMin, borderColMin) || !isInside(row, colIndex) ||
+                    return !AiUtils.isInside(borderRowMin, borderColMin) ||
+                        !AiUtils.isInside(row, colIndex) ||
                         !isBlock(borderRowMin, borderColMin, boardCellState) ||
                         !isBlock(row, colIndex, boardCellState) ||
                         !(isBlock(borderRowMin, borderColMin, boardCellState) &&
@@ -410,7 +410,7 @@ public class BoardView extends View implements Constants {
             count = DEFAULT_COUNT;
             col = mMinCol;
             while (count < WIN_COUNT && rowIndex <= mMaxRow && col <= mMaxCol) {
-                if (mItemCaros[rowIndex][col].getBoardCellState() == boardCellState) count++;
+                if (getBoardCellState(rowIndex, col) == boardCellState.getValues()) count++;
                 else count = DEFAULT_COUNT;
                 rowIndex++;
                 col++;
@@ -419,7 +419,8 @@ public class BoardView extends View implements Constants {
                 if (!mIsBlockTwoHeadWin) {
                     int borderRowMin = rowIndex - WIN_COUNT - 1;
                     int borderColMin = col - WIN_COUNT - 1;
-                    return !isInside(borderRowMin, borderColMin) || !isInside(rowIndex, col) ||
+                    return !AiUtils.isInside(borderRowMin, borderColMin) ||
+                        !AiUtils.isInside(rowIndex, col) ||
                         !isBlock(borderRowMin, borderColMin, boardCellState) ||
                         !isBlock(rowIndex, col, boardCellState) ||
                         !(isBlock(borderRowMin, borderColMin, boardCellState) &&
@@ -438,7 +439,7 @@ public class BoardView extends View implements Constants {
             count = DEFAULT_COUNT;
             colIndex = col;
             while (count < WIN_COUNT && row >= mMinRow && colIndex <= mMaxCol) {
-                if (mItemCaros[row][colIndex].getBoardCellState() == boardCellState) count++;
+                if (getBoardCellState(row, colIndex) == boardCellState.getValues()) count++;
                 else count = DEFAULT_COUNT;
                 row--;
                 colIndex++;
@@ -447,7 +448,8 @@ public class BoardView extends View implements Constants {
                 if (!mIsBlockTwoHeadWin) {
                     int borderRowMax = row + WIN_COUNT + 1;
                     int borderColMin = colIndex - WIN_COUNT - 1;
-                    return !isInside(borderRowMax, borderColMin) || !isInside(row, colIndex) ||
+                    return !AiUtils.isInside(borderRowMax, borderColMin) ||
+                        !AiUtils.isInside(row, colIndex) ||
                         !isBlock(borderRowMax, borderColMin, boardCellState) ||
                         !isBlock(row, colIndex, boardCellState) ||
                         !(isBlock(borderRowMax, borderColMin, boardCellState) &&
@@ -475,7 +477,9 @@ public class BoardView extends View implements Constants {
                 if (!mIsBlockTwoHeadWin) {
                     int borderRowMax = rowIndex + WIN_COUNT + 1;
                     int borderColMin = col - WIN_COUNT - 1;
-                    return !isInside(borderRowMax, borderColMin) || !isInside(rowIndex, col) ||
+                    return !AiUtils.isInside(borderRowMax, borderColMin) ||
+                        !AiUtils.isInside(rowIndex,
+                            col) ||
                         !isBlock(borderRowMax, borderColMin, boardCellState) ||
                         !isBlock(rowIndex, col, boardCellState) ||
                         !(isBlock(borderRowMax, borderColMin, boardCellState) &&
@@ -484,14 +488,6 @@ public class BoardView extends View implements Constants {
             }
         }
         return false;
-    }
-
-    protected boolean isInside(int row, int col) {
-        return row >= 0 && row < ROW && col >= 0 && col < COL;
-    }
-
-    protected int getBoardCellState(int row, int col) {
-        return mItemCaros[row][col].getBoardCellState().getValues();
     }
 
     private void handleYourTurn(GameData gameData) {
@@ -519,13 +515,13 @@ public class BoardView extends View implements Constants {
         mTurnGame = TurnGame.YOUR_TURN;
     }
 
-    protected int getBoardCellState(Point point) {
-        return mItemCaros[point.x][point.y].getBoardCellState().getValues();
-    }
-
     protected boolean isBlock(int row, int col, BoardCellState boardCellState) {
         return !(getBoardCellState(row, col) == BoardCellState.EMPTY.getValues() ||
             getBoardCellState(row, col) == boardCellState.getValues());
+    }
+
+    public int getBoardCellState(int row, int col) {
+        return mItemCaros[row][col].getBoardCellState().getValues();
     }
 }
 

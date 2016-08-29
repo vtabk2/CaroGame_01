@@ -7,10 +7,10 @@ import java.io.Serializable;
  */
 public enum BoardCellState implements Serializable {
     EMPTY(0),
-    PLAYER_X(1),
-    PLAYER_O(2),
-    HUMAN(3),
-    MACHINE(4);
+    PLAYER_X(4),
+    PLAYER_O(3),
+    HUMAN(2),
+    MACHINE(1);
     private int mValues;
 
     BoardCellState(int values) {

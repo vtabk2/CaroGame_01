@@ -36,15 +36,6 @@ public interface Constants {
     int DEFAULT_INTENT_VALUE = -1;
     int WIN_COUNT = 5;
     int DEFAULT_COUNT = 0;
-    int[] DELTA_ROW = {1, 1, 1, 0};
-    int[] DELTA_COL = {-1, 0, 1, 1};
-    int LENGTH = 4;
-    int BEST_SCORE = 10000;
-    int[] ATTACK_SCORE = {-1, 0, 2, 8, 5000, 10000};
-    int[] DEFENSE_SCORE = {-1, 0, 2, 6, 800, 7000};
-    int[] BONUS = {150, 30};
-    int NUMBER_BONUS = 2;
-    int OUT_OF_DISTANCE = 2;
     int SEQUENCE_DELAY_TIME = 50;
     int DEFAULT_LAST_MOVE = -1;
     String TWO_HEAD_WIN_BLOCK = "two head win block";
@@ -59,4 +50,6 @@ public interface Constants {
     String ACTION_HISTORY_GAME = "action history game";
     String ID_DATA_GAME = "id data game";
     int ID_DATA_GAME_DEFAULT = 1;
+    int NEXT_TURN_COMPUTER = 1;
+    int COMPUTER_THINKING = 2500;
 }

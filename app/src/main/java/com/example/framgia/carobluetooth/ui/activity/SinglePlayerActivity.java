@@ -64,7 +64,7 @@ public class SinglePlayerActivity extends AppCompatActivity
             .setText(getString(R.string.you));
         ((TextView) mLinearLayoutMachine.findViewById(R.id.text_player_name))
             .setText(getString(R.string.computer_easy));
-        mSingleBoardView = new SingleBoardView(this);
+        mSingleBoardView = new SingleBoardView(this, getIntent());
         ((HorizontalScrollView) findViewById(R.id.horizontal_scroll_board))
             .addView(mSingleBoardView);
         mSharedPreferences = getSharedPreferences(SHARED_PREFERENCES, MODE_PRIVATE);

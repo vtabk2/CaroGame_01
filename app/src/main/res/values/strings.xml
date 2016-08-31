@@ -96,4 +96,11 @@
     <string name="text_orientation_portrait">Portrait</string>
     <string name="text_orientation_landscape">Landscape</string>
     <string name="text_choose_orientation">Choose orientation board :</string>
+    <string name="text_history">HISTORY</string>
+    <string name="text_history_index">Id</string>
+    <string name="history">History</string>
+    <string name="text_history_human_status">Human</string>
+    <string name="text_history_computer_status">Computer</string>
+    <string name="text_history_level_game">Level</string>
+    <string name="text_history_time_game">Time game</string>
 </resources>

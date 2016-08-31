@@ -26,6 +26,11 @@
         android:text="@string/multiplayer"/>
 
     <Button
+        android:id="@+id/button_history"
+        style="@style/button_main_screen"
+        android:text="@string/history"/>
+
+    <Button
         android:id="@+id/button_settings"
         style="@style/button_main_screen"
         android:text="@string/text_button_settings"/>

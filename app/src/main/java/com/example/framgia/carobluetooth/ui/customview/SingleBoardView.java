@@ -2,6 +2,7 @@ package com.example.framgia.carobluetooth.ui.customview;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Point;
 import android.support.v7.app.AlertDialog;
 import android.view.MotionEvent;
@@ -21,9 +22,16 @@ import com.example.framgia.carobluetooth.utility.ToastUtils;
 public class SingleBoardView extends BoardView {
     private OnGetSingleBoardInfo mOnGetSingleBoardInfo;
 
-    public SingleBoardView(Context context) {
+    public SingleBoardView(Context context, Intent intent) {
         super(context);
-        mTurnGame = TurnGame.HUMAN;
+        switch (intent.getAction()) {
+            case ACTION_HISTORY_GAME:
+                mTurnGame = TurnGame.NONE;
+                break;
+            case ACTION_NEW_GAME:
+                mTurnGame = TurnGame.HUMAN;
+                break;
+        }
     }
 
     @Override

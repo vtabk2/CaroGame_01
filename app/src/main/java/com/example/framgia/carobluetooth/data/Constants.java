@@ -54,4 +54,7 @@ public interface Constants {
     String SHARE_IMAGE_TYPE = "image/";
     int IMAGE_QUALITY = 100;
     String SCREEN_ORIENTATION_PORTRAIT = "screen orientation portrait";
+    String ID_GAME_CARO = "id game caro";
+    String ACTION_HISTORY_GAME = "action history game";
+    String ACTION_NEW_GAME = "action new game";
 }

@@ -24,4 +24,5 @@
     <dimen name="margin_medium">10dp</dimen>
     <dimen name="item_checkbox_settings_text_size">18sp</dimen>
     <dimen name="radio_group_settings_width">300dp</dimen>
+    <dimen name="text_history_index_width">30dp</dimen>
 </resources>

@@ -8,6 +8,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 
 import com.example.framgia.carobluetooth.R;
+import com.example.framgia.carobluetooth.data.Constants;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     @Override
@@ -59,7 +60,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.button_single_player:
-                startActivity(new Intent(this, SinglePlayerActivity.class));
+                Intent intent = new Intent(this, SinglePlayerActivity.class);
+                intent.setAction(Constants.ACTION_NEW_GAME);
+                startActivity(intent);
                 break;
             case R.id.button_multiplayer:
                 startActivity(new Intent(this, BoardActivity.class));

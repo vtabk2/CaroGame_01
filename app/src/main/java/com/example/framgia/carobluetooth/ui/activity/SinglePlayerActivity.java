@@ -18,11 +18,14 @@ import android.widget.TextView;
 
 import com.example.framgia.carobluetooth.R;
 import com.example.framgia.carobluetooth.data.Constants;
+import com.example.framgia.carobluetooth.data.database.DBHelper;
 import com.example.framgia.carobluetooth.data.enums.GameState;
+import com.example.framgia.carobluetooth.data.model.History;
 import com.example.framgia.carobluetooth.ui.customview.SingleBoardView;
 import com.example.framgia.carobluetooth.ui.listener.OnGetSingleBoardInfo;
 import com.example.framgia.carobluetooth.utility.ShareUtils;
 
+import java.util.Calendar;
 import java.util.Locale;
 
 /**
@@ -64,7 +67,7 @@ public class SinglePlayerActivity extends AppCompatActivity
             .setText(getString(R.string.you));
         ((TextView) mLinearLayoutMachine.findViewById(R.id.text_player_name))
             .setText(getString(R.string.computer_easy));
-        mSingleBoardView = new SingleBoardView(this);
+        mSingleBoardView = new SingleBoardView(this, getIntent());
         ((HorizontalScrollView) findViewById(R.id.horizontal_scroll_board))
             .addView(mSingleBoardView);
         mSharedPreferences = getSharedPreferences(SHARED_PREFERENCES, MODE_PRIVATE);
@@ -135,6 +138,12 @@ public class SinglePlayerActivity extends AppCompatActivity
         editor.putInt(LOSE_HUMAN,
             mSharedPreferences.getInt(LOSE_HUMAN, WIN_LOSE_DEFAULT) + INCREASE_DEFAULT);
         editor.apply();
+        mSingleBoardView.setTimeGameEnd(Calendar.getInstance().getTimeInMillis());
+        DBHelper dbHelper = new DBHelper(this);
+        dbHelper.addHistory(
+            new History(SURRENDER, WIN, getString(R.string.game_easy),
+                mSingleBoardView.getTimeGame()));
+        mSingleBoardView.saveDataGame();
     }
 
     @Override

@@ -8,6 +8,7 @@ import android.widget.TextView;
 
 import com.example.framgia.carobluetooth.R;
 import com.example.framgia.carobluetooth.data.model.History;
+import com.example.framgia.carobluetooth.ui.listener.OnClickItemHistoryListener;
 
 import java.util.List;
 
@@ -17,9 +18,12 @@ import java.util.List;
 public class HistoryRecyclerViewAdapter
     extends RecyclerView.Adapter<HistoryRecyclerViewAdapter.HistoryViewHolder> {
     private List<History> mHistoryList;
+    private OnClickItemHistoryListener mOnClickItemHistoryListener;
 
-    public HistoryRecyclerViewAdapter(List<History> historyList) {
+    public HistoryRecyclerViewAdapter(List<History> historyList,
+                                      OnClickItemHistoryListener onClickItemHistoryListener) {
         mHistoryList = historyList;
+        mOnClickItemHistoryListener = onClickItemHistoryListener;
     }
 
     @Override
@@ -29,13 +33,21 @@ public class HistoryRecyclerViewAdapter
     }
 
     @Override
-    public void onBindViewHolder(HistoryViewHolder holder, int position) {
-        History history = mHistoryList.get(position);
+    public void onBindViewHolder(final HistoryViewHolder holder, int position) {
+        final History history = mHistoryList.get(position);
         holder.mTextViewId.setText("" + history.getId());
         holder.mTextViewHumanStatus.setText(history.getHumanStatus());
         holder.mTextViewComputerStatus.setText(history.getComputerStatus());
         holder.mTextViewLevel.setText(history.getLevel());
         holder.mTextViewTimeGame.setText(history.getTimeGame());
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (mOnClickItemHistoryListener != null) {
+                    mOnClickItemHistoryListener.onClickItem(holder, history.getId());
+                }
+            }
+        });
     }
 
     @Override

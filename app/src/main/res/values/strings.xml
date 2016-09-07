@@ -103,4 +103,7 @@
     <string name="text_history_computer_status">Computer</string>
     <string name="text_history_level_game">Level</string>
     <string name="text_history_time_game">Time game</string>
+    <string name="time_game_hour_default">%1$02d h %2$02d m</string>
+    <string name="time_game_not_hour_default">%1$02d m %2$02d s</string>
+    <string name="time_game_not_hour_not_minute_default">%1$2d s</string>
 </resources>

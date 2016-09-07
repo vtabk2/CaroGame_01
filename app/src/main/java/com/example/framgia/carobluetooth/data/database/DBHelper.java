@@ -3,6 +3,7 @@ package com.example.framgia.carobluetooth.data.database;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
@@ -51,7 +52,6 @@ public class DBHelper extends SQLiteOpenHelper {
     public void addHistory(History history) {
         SQLiteDatabase db = getWritableDatabase();
         ContentValues values = new ContentValues();
-        values.put(KEY_ID_HISTORY, history.getId());
         values.put(KEY_HUMAN_STATUS_HISTORY, history.getHumanStatus());
         values.put(KEY_COMPUTER_STATUS_HISTORY, history.getComputerStatus());
         values.put(KEY_LEVEL_HISTORY, history.getLevel());
@@ -88,6 +88,10 @@ public class DBHelper extends SQLiteOpenHelper {
         }
         db.close();
         return history;
+    }
+
+    public int getSizeHistoryList() {
+        return (int) DatabaseUtils.queryNumEntries(getWritableDatabase(), TABLE_HISTORY);
     }
 
     public List<History> getHistoryAll() {

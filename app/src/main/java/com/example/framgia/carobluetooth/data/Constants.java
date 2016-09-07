@@ -21,8 +21,9 @@ public interface Constants {
     String DEVICE_ADDRESS = "device_address";
     String TOAST = "toast";
     String SHARED_PREFERENCES = "caro game bluetooth";
-    String WIN = "win";
-    String LOSE = "lose";
+    String WIN = "Win";
+    String LOSE = "Lose";
+    String SURRENDER = "Surrender";
     String WIN_HUMAN = "win human";
     String LOSE_HUMAN = "lose man";
     int WIN_LOSE_DEFAULT = 0;
@@ -54,4 +55,8 @@ public interface Constants {
     String SHARE_IMAGE_TYPE = "image/";
     int IMAGE_QUALITY = 100;
     String SCREEN_ORIENTATION_PORTRAIT = "screen orientation portrait";
+    String ACTION_NEW_GAME = "action new game";
+    String ACTION_HISTORY_GAME = "action history game";
+    String ID_DATA_GAME = "id data game";
+    int ID_DATA_GAME_DEFAULT = 1;
 }

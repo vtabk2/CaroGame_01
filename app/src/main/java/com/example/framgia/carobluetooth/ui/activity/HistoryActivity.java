@@ -1,5 +1,6 @@
 package com.example.framgia.carobluetooth.ui.activity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -9,9 +10,11 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.example.framgia.carobluetooth.R;
+import com.example.framgia.carobluetooth.data.Constants;
 import com.example.framgia.carobluetooth.data.database.DBHelper;
 import com.example.framgia.carobluetooth.data.model.History;
 import com.example.framgia.carobluetooth.ui.adapter.HistoryRecyclerViewAdapter;
+import com.example.framgia.carobluetooth.ui.listener.OnClickItemHistoryListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +22,7 @@ import java.util.List;
 /**
  * Created by framgia on 31/08/2016.
  */
-public class HistoryActivity extends AppCompatActivity {
+public class HistoryActivity extends AppCompatActivity implements OnClickItemHistoryListener {
     private HistoryRecyclerViewAdapter mHistoryRecyclerViewAdapter;
     private List<History> mHistoryList = new ArrayList<>();
 
@@ -45,7 +48,7 @@ public class HistoryActivity extends AppCompatActivity {
         ((TextView) linearLayoutTitleHistoryItem.findViewById(R.id.text_history_time_game))
             .setText(R.string.text_history_time_game);
         RecyclerView recyclerViewHistory = (RecyclerView) findViewById(R.id.recycler_view_history);
-        mHistoryRecyclerViewAdapter = new HistoryRecyclerViewAdapter(mHistoryList);
+        mHistoryRecyclerViewAdapter = new HistoryRecyclerViewAdapter(mHistoryList, this);
         recyclerViewHistory.setLayoutManager(new LinearLayoutManager(this));
         recyclerViewHistory.setAdapter(mHistoryRecyclerViewAdapter);
     }
@@ -54,5 +57,14 @@ public class HistoryActivity extends AppCompatActivity {
         DBHelper mDbHelper = new DBHelper(this);
         mHistoryList.addAll(mDbHelper.getHistoryAll());
         mHistoryRecyclerViewAdapter.notifyDataSetChanged();
+    }
+
+    @Override
+    public void onClickItem(HistoryRecyclerViewAdapter.HistoryViewHolder historyViewHolder,
+                            int idDataGame) {
+        Intent intentStartHistory = new Intent(this, SinglePlayerActivity.class);
+        intentStartHistory.setAction(Constants.ACTION_HISTORY_GAME);
+        intentStartHistory.putExtra(Constants.ID_DATA_GAME, idDataGame);
+        startActivity(intentStartHistory);
     }
 }
